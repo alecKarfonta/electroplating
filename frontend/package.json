@@ -2,25 +2,26 @@
   "name": "stl-analysis-frontend",
   "version": "1.0.0",
   "private": true,
+  "homepage": "/stl",
   "dependencies": {
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.17.1",
+    "@mui/material": "^5.14.0",
     "@types/node": "^16.18.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/three": "^0.158.0",
+    "axios": "^1.6.0",
+    "lucide-react": "^0.294.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
-    "typescript": "^4.9.0",
-    "three": "^0.158.0",
-    "axios": "^1.6.0",
-    "@mui/material": "^5.14.0",
-    "@mui/icons-material": "^5.14.0",
-    "@emotion/react": "^11.11.0",
-    "@emotion/styled": "^11.11.0",
     "react-dropzone": "^14.2.0",
     "react-router-dom": "^6.8.0",
+    "react-scripts": "5.0.1",
     "recharts": "^2.8.0",
-    "lucide-react": "^0.294.0"
+    "three": "^0.158.0",
+    "typescript": "^4.9.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -46,5 +47,11 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:8000"
-} 
+  "proxy": "http://localhost:8116",
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^30.0.0"
+  }
+}
