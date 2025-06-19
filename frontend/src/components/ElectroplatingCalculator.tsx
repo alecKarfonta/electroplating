@@ -52,6 +52,15 @@ interface ElectroplatingCalculatorProps {
   error?: string | null;
 }
 
+// Default current density values for different metals (A/in²)
+const metalDefaults = {
+  copper: { min: 0.07, max: 0.60, density: 8.96 },
+  nickel: { min: 0.07, max: 0.15, density: 8.9 },
+  chrome: { min: 0.10, max: 0.25, density: 7.19 },
+  gold: { min: 0.04, max: 0.12, density: 19.32 },
+  silver: { min: 0.03, max: 0.15, density: 10.49 }
+};
+
 const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
   onCalculate,
   onGetRecommendations,
@@ -60,21 +69,34 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
   loading = false,
   error = null,
 }) => {
+  const [selectedMetal, setSelectedMetal] = useState<'nickel' | 'copper' | 'chrome' | 'gold' | 'silver'>('copper');
+  
   const [formData, setFormData] = useState<ElectroplatingRequest>({
-    current_density_min: 0.07,
-    current_density_max: 0.1,
+    current_density_min: metalDefaults.copper.min,
+    current_density_max: metalDefaults.copper.max,
     plating_thickness_microns: 20.0,
-    metal_density_g_cm3: 8.9,
+    metal_density_g_cm3: metalDefaults.copper.density,
     current_efficiency: 0.95,
     voltage: 3.0,
   });
-
-  const [selectedMetal, setSelectedMetal] = useState<'nickel' | 'copper' | 'chrome' | 'gold' | 'silver'>('copper');
 
   const handleInputChange = (field: keyof ElectroplatingRequest, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
+    }));
+  };
+
+  const handleMetalChange = (metal: 'nickel' | 'copper' | 'chrome' | 'gold' | 'silver') => {
+    setSelectedMetal(metal);
+    const defaults = metalDefaults[metal];
+    
+    // Update form data with metal-specific defaults
+    setFormData(prev => ({
+      ...prev,
+      current_density_min: defaults.min,
+      current_density_max: defaults.max,
+      metal_density_g_cm3: defaults.density,
     }));
   };
 
@@ -202,7 +224,7 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
               <Select
                 value={selectedMetal}
                 label="Metal Type"
-                onChange={(e) => setSelectedMetal(e.target.value as any)}
+                onChange={(e) => handleMetalChange(e.target.value as any)}
               >
                 <MenuItem value="nickel">Nickel</MenuItem>
                 <MenuItem value="copper">Copper</MenuItem>
