@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: stl-analysis-api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount sessions directory for persistent file storage
+      - ./sessions:/app/sessions
+      # Mount logs directory (optional)
+      - ./logs:/app/logs
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - stl-network
+
+  frontend:
+    build: ./frontend
+    container_name: stl-analysis-frontend
+    ports:
+      - "3017:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - stl-network
+    environment:
+      - REACT_APP_API_URL=http://backend:8000
+
+  # Optional: Add a reverse proxy with nginx for production
+  nginx:
+    image: nginx:alpine
+    container_name: stl-api-nginx
+    ports:
+      - "8085:80"
+      - "44385:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - stl-network
+    profiles:
+      - production
+
+networks:
+  stl-network:
+    driver: bridge
+
+volumes:
+  sessions:
+    driver: local
+  logs:
+    driver: local 

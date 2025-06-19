@@ -1,0 +1,127 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: stl-analysis-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - stl-network
+
+  backend:
+    image: ghcr.io/${GITHUB_REPOSITORY:-your-username/electroplating}/backend:latest
+    container_name: stl-analysis-api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount sessions directory for persistent file storage
+      - ./sessions:/app/sessions
+      # Mount logs directory
+      - ./logs:/app/logs
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - LOG_FILE=/app/logs/api.log
+      - REDIS_URL=redis://redis:6379
+      - MAX_FILE_SIZE=104857600
+      - SESSION_TIMEOUT=3600
+      - MAX_SESSIONS=1000
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - stl-network
+
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY:-your-username/electroplating}/frontend:latest
+    container_name: stl-analysis-frontend
+    ports:
+      - "3017:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    networks:
+      - stl-network
+
+  # Production reverse proxy with nginx
+  nginx:
+    image: nginx:alpine
+    container_name: stl-analysis-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro  # SSL certificates
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - stl-network
+
+  # Monitoring with Prometheus and Grafana (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: stl-analysis-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - stl-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: stl-analysis-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    restart: unless-stopped
+    networks:
+      - stl-network
+
+networks:
+  stl-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local 
