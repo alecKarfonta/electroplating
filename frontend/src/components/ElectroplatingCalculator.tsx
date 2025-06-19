@@ -228,8 +228,9 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
   const handleThicknessChange = (value: number) => {
     setThicknessInput(value);
     
-    // Convert to microns for the form data
-    const microns = unitSystem === 'metric' ? value : value * 25.4; // Convert mils to microns
+    // Always store thickness in mils internally, convert to microns for API
+    const thicknessInMils = unitSystem === 'metric' ? value * 0.0393701 : value; // Convert microns to mils if metric
+    const microns = thicknessInMils * 25.4; // Convert mils to microns for API
     
     const newFormData = {
       ...formData,
@@ -246,7 +247,7 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
     setSelectedMetal(metal);
     const defaults = metalDefaults[metal];
     
-    // Update form data with metal-specific defaults
+    // Update form data with metal-specific defaults (always in imperial)
     const newFormData = {
       ...formData,
       current_density_min: defaults.min,
@@ -292,7 +293,7 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
     if (unitSystem === 'metric') {
       return `${formatNumber(microns)} μm`;
     } else {
-      const mils = microns * 0.0393701 / 1000; // Convert to mils (thousandths of an inch)
+      const mils = microns * 0.0393701; // Convert microns to mils (1 micron = 0.0393701 mils)
       return `${formatNumber(mils, 3)} mils`;
     }
   };
@@ -309,38 +310,21 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
   const handleUnitSystemChange = (newSystem: UnitSystem) => {
     setUnitSystem(newSystem);
     
-    // Convert thickness input to new unit system with proper rounding
+    // Convert thickness input to new unit system for display only
     if (newSystem === 'imperial') {
-      // Convert microns to mils: 1 micron = 0.0393701 mils
+      // We're switching TO imperial, so current display value is in microns, convert to mils
+      // 1 micron = 0.0393701 mils
       const mils = thicknessInput * 0.0393701;
       setThicknessInput(Math.round(mils * 100) / 100); // Round to 2 decimal places
     } else {
-      // Convert mils to microns: 1 mil = 25.4 microns
+      // We're switching TO metric, so current display value is in mils, convert to microns
+      // 1 mil = 25.4 microns
       const microns = thicknessInput * 25.4;
       setThicknessInput(Math.round(microns)); // Round to whole numbers for microns
     }
 
-    // Convert current density values to new unit system with proper rounding
-    let newMinCurrentDensity = formData.current_density_min || 0;
-    let newMaxCurrentDensity = formData.current_density_max || 0;
-    
-    if (newSystem === 'metric') {
-      // Convert from A/in² to A/dm² (1 in² = 0.645 dm²)
-      newMinCurrentDensity = Math.round((formData.current_density_min || 0) / 0.645 * 1000) / 1000;
-      newMaxCurrentDensity = Math.round((formData.current_density_max || 0) / 0.645 * 1000) / 1000;
-    } else {
-      // Convert from A/dm² to A/in² (1 dm² = 1.55 in²)
-      newMinCurrentDensity = Math.round((formData.current_density_min || 0) * 0.645 * 1000) / 1000;
-      newMaxCurrentDensity = Math.round((formData.current_density_max || 0) * 0.645 * 1000) / 1000;
-    }
-
-    const newFormData = {
-      ...formData,
-      current_density_min: newMinCurrentDensity,
-      current_density_max: newMaxCurrentDensity,
-    };
-    setFormData(newFormData);
-    validateAndCalculate(newFormData);
+    // No need to convert formData - internal calculations stay in imperial
+    // The display functions will handle the conversion for metric display
   };
 
   const formatNumber = (num: number, decimals = 2) => {
@@ -373,13 +357,22 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
 
   const getCurrentDensityHelperText = () => {
     if (unitSystem === 'metric') {
-      // Convert A/in² ranges to A/dm² (1 in² = 0.645 dm²)
-      const minMetric = (metalDefaults[selectedMetal].min / 0.645).toFixed(2);
-      const maxMetric = (metalDefaults[selectedMetal].max / 0.645).toFixed(2);
+      // Convert A/in² ranges to A/dm² (1 in² = 0.064516 dm², so 1 A/in² = 1/0.064516 A/dm²)
+      const minMetric = (metalDefaults[selectedMetal].min / 0.064516).toFixed(3);
+      const maxMetric = (metalDefaults[selectedMetal].max / 0.064516).toFixed(3);
       return `Typical range: ${minMetric}-${maxMetric} A/dm²`;
     } else {
       return `Typical range: ${metalDefaults[selectedMetal].min}-${metalDefaults[selectedMetal].max} A/in²`;
     }
+  };
+
+  // Helper function to convert current density for display
+  const displayCurrentDensity = (value: number) => {
+    if (unitSystem === 'metric') {
+      // Convert A/in² to A/dm² for display
+      return Math.round((value / 0.064516) * 1000) / 1000;
+    }
+    return value;
   };
 
   return (
@@ -534,9 +527,14 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
                   fullWidth
                   label={`Min Current Density (${getCurrentDensityLabel()})`}
                   type="number"
-                  value={formData.current_density_min}
-                  onChange={(e) => handleInputChange('current_density_min', parseFloat(e.target.value))}
-                  inputProps={{ min: 0.01, max: 1, step: 0.01 }}
+                  value={displayCurrentDensity(formData.current_density_min || 0)}
+                  onChange={(e) => {
+                    const displayValue = parseFloat(e.target.value);
+                    // Convert back to imperial (A/in²) for internal storage
+                    const imperialValue = unitSystem === 'metric' ? displayValue * 0.064516 : displayValue;
+                    handleInputChange('current_density_min', imperialValue);
+                  }}
+                  inputProps={{ min: 0.01, max: unitSystem === 'metric' ? 15.5 : 1, step: 0.01 }}
                   helperText={getCurrentDensityHelperText()}
                   InputProps={{
                     startAdornment: <BatteryChargingFull sx={{ mr: 1, color: '#6b7280' }} />
@@ -554,9 +552,14 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
                   fullWidth
                   label={`Max Current Density (${getCurrentDensityLabel()})`}
                   type="number"
-                  value={formData.current_density_max}
-                  onChange={(e) => handleInputChange('current_density_max', parseFloat(e.target.value))}
-                  inputProps={{ min: 0.01, max: 1, step: 0.01 }}
+                  value={displayCurrentDensity(formData.current_density_max || 0)}
+                  onChange={(e) => {
+                    const displayValue = parseFloat(e.target.value);
+                    // Convert back to imperial (A/in²) for internal storage
+                    const imperialValue = unitSystem === 'metric' ? displayValue * 0.064516 : displayValue;
+                    handleInputChange('current_density_max', imperialValue);
+                  }}
+                  inputProps={{ min: 0.01, max: unitSystem === 'metric' ? 15.5 : 1, step: 0.01 }}
                   helperText={getCurrentDensityHelperText()}
                   InputProps={{
                     startAdornment: <BatteryChargingFull sx={{ mr: 1, color: '#6b7280' }} />
@@ -716,7 +719,7 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
                   <Typography variant="body2" color="textSecondary">
                     {unitSystem === 'metric' 
                       ? `${formatNumber(platingEstimate.material_requirements.metal_mass_kg, 4)} kg`
-                      : `${formatNumber(platingEstimate.material_requirements.metal_mass_g * 0.035274 / 16, 4)} lbs`
+                      : `${formatNumber(platingEstimate.material_requirements.metal_mass_g * 0.00220462, 4)} lbs`
                     }
                   </Typography>
                 </CardContent>
@@ -849,7 +852,7 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
                     <Typography variant="body2" color="textSecondary">
                       {unitSystem === 'metric' 
                         ? `${formatNumber(statistics.surface_area / 100)} cm²`
-                        : `${formatNumber(statistics.surface_area * 0.00155 * 6.4516)} cm²`
+                        : `${formatNumber(statistics.surface_area / 100)} cm²`
                       }
                     </Typography>
                   </CardContent>
