@@ -27,8 +27,8 @@ describe('FileUpload', () => {
   it('renders correctly with default state', () => {
     render(<FileUpload {...defaultProps} />);
     
-    expect(screen.getByText(/Upload STL File/i)).toBeInTheDocument();
-    expect(screen.getByText(/Drag & drop an STL file here/i)).toBeInTheDocument();
+    expect(screen.getByText(/Upload Your STL File/i)).toBeInTheDocument();
+    expect(screen.getByText(/Drag & drop your 3D model here, or click to browse/i)).toBeInTheDocument();
   });
 
   it('displays error message when error prop is provided', () => {
@@ -41,7 +41,7 @@ describe('FileUpload', () => {
   it('shows loading state when loading prop is true', () => {
     render(<FileUpload {...defaultProps} loading={true} />);
     
-    expect(screen.getByText(/Processing file.../i)).toBeInTheDocument();
+    expect(screen.getByText(/Processing Your Model/i)).toBeInTheDocument();
   });
 
   it('handles file selection via click', async () => {
@@ -49,7 +49,7 @@ describe('FileUpload', () => {
     render(<FileUpload {...defaultProps} />);
     
     const file = createMockFile('test.stl', 'application/octet-stream');
-    const input = screen.getByRole('button', { name: /browse files/i });
+    const input = screen.getByRole('button', { name: /choose file/i });
     
     // Click the button to trigger file dialog
     await user.click(input);
@@ -61,13 +61,13 @@ describe('FileUpload', () => {
   it('shows browse button when not loading', () => {
     render(<FileUpload {...defaultProps} />);
     
-    expect(screen.getByRole('button', { name: /browse files/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /choose file/i })).toBeInTheDocument();
   });
 
   it('renders upload instructions', () => {
     render(<FileUpload {...defaultProps} />);
     
-    expect(screen.getByText(/or click to browse files/i)).toBeInTheDocument();
-    expect(screen.getByText(/Supported format: STL files only/i)).toBeInTheDocument();
+    expect(screen.getByText(/Drag & drop your 3D model here, or click to browse/i)).toBeInTheDocument();
+    expect(screen.getByText(/STL Files Only/i)).toBeInTheDocument();
   });
 }); 

@@ -13,15 +13,13 @@ import {
   Alert,
   Card,
   CardContent,
-  Divider,
   Chip,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   List,
   ListItem,
   ListItemText,
   ListItemIcon,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import {
   Calculate,
@@ -31,16 +29,17 @@ import {
   AttachMoney,
   Science,
   Lightbulb,
-  ExpandMore,
   CheckCircle,
-  Warning,
   Info,
+  AspectRatio,
+  SwapHoriz,
 } from '@mui/icons-material';
 import {
   ElectroplatingRequest,
   ElectroplatingEstimate,
   ElectroplatingRecommendationRequest,
   ElectroplatingRecommendations,
+  MeshStatistics,
 } from '../types/api';
 
 interface ElectroplatingCalculatorProps {
@@ -50,7 +49,11 @@ interface ElectroplatingCalculatorProps {
   recommendations?: ElectroplatingRecommendations | null;
   loading?: boolean;
   error?: string | null;
+  statistics?: MeshStatistics | null;
 }
+
+// Unit conversion type
+type UnitSystem = 'metric' | 'imperial';
 
 // Default current density values for different metals (A/in²)
 const metalDefaults = {
@@ -68,8 +71,10 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
   recommendations,
   loading = false,
   error = null,
+  statistics = null,
 }) => {
   const [selectedMetal, setSelectedMetal] = useState<'nickel' | 'copper' | 'chrome' | 'gold' | 'silver'>('copper');
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
   
   const [formData, setFormData] = useState<ElectroplatingRequest>({
     current_density_min: metalDefaults.copper.min,
@@ -109,6 +114,37 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
     onGetRecommendations({ metal_type: selectedMetal });
   };
 
+  // Unit conversion functions
+  const convertArea = (area: { cm2: number; in2: number }) => {
+    return unitSystem === 'metric' ? area.cm2 : area.in2;
+  };
+
+  const getAreaUnit = () => {
+    return unitSystem === 'metric' ? 'cm²' : 'in²';
+  };
+
+  const convertLength = (microns: number) => {
+    if (unitSystem === 'metric') {
+      return `${formatNumber(microns)} μm`;
+    } else {
+      const mils = microns * 0.0393701 / 1000; // Convert to mils (thousandths of an inch)
+      return `${formatNumber(mils, 3)} mils`;
+    }
+  };
+
+  const convertMass = (grams: number) => {
+    if (unitSystem === 'metric') {
+      return `${formatNumber(grams)} g`;
+    } else {
+      const ounces = grams * 0.035274;
+      return `${formatNumber(ounces, 3)} oz`;
+    }
+  };
+
+  const handleUnitSystemChange = (newSystem: UnitSystem) => {
+    setUnitSystem(newSystem);
+  };
+
   const formatNumber = (num: number, decimals = 2) => {
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: decimals,
@@ -127,10 +163,78 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
 
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom>
-        <ElectricBolt sx={{ mr: 1, verticalAlign: 'middle' }} />
-        Electroplating Calculator
-      </Typography>
+      {/* Header with Unit Toggle */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          <ElectricBolt sx={{ mr: 1, verticalAlign: 'middle' }} />
+          Electroplating Calculator
+        </Typography>
+        
+        <ToggleButtonGroup
+          value={unitSystem}
+          exclusive
+          onChange={(_, value) => value && handleUnitSystemChange(value)}
+          size="small"
+          sx={{
+            '& .MuiToggleButton-root': {
+              fontWeight: 600,
+              '&.Mui-selected': {
+                backgroundColor: '#f59e0b',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: '#d97706',
+                }
+              }
+            }
+          }}
+        >
+          <ToggleButton value="metric">
+            <SwapHoriz sx={{ mr: 0.5 }} />
+            Metric
+          </ToggleButton>
+          <ToggleButton value="imperial">
+            <SwapHoriz sx={{ mr: 0.5 }} />
+            Imperial
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
+
+      {/* Surface Area Display - Prominent when statistics available */}
+      {statistics && (
+        <Alert 
+          severity="info" 
+          sx={{ 
+            mb: 3,
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            border: '2px solid rgba(245, 158, 11, 0.3)',
+            borderRadius: 2,
+            '& .MuiAlert-icon': {
+              color: '#f59e0b'
+            }
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <AspectRatio sx={{ fontSize: '2rem', color: '#f59e0b' }} />
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e3a8a', mb: 0.5 }}>
+                Model Surface Area
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: '#f59e0b' }}>
+                {unitSystem === 'metric' 
+                  ? `${formatNumber(statistics.surface_area)} mm²` 
+                  : `${formatNumber(statistics.surface_area * 0.00155)} in²`
+                }
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>
+                {unitSystem === 'metric' 
+                  ? `(${formatNumber(statistics.surface_area / 100)} cm²)`
+                  : `(${formatNumber(statistics.surface_area * 0.00155 * 6.4516)} cm²)`
+                }
+              </Typography>
+            </Box>
+          </Box>
+        </Alert>
+      )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -258,16 +362,20 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
           <Grid container spacing={2}>
             {/* Surface Area */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card>
+              <Card sx={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', border: '2px solid rgba(245, 158, 11, 0.3)' }}>
                 <CardContent>
                   <Typography color="textSecondary" gutterBottom>
+                    <AspectRatio sx={{ mr: 0.5, verticalAlign: 'middle' }} />
                     Surface Area
                   </Typography>
-                  <Typography variant="h6">
-                    {formatNumber(platingEstimate.surface_area.in2)} in²
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#f59e0b' }}>
+                    {formatNumber(convertArea(platingEstimate.surface_area))} {getAreaUnit()}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
-                    {formatNumber(platingEstimate.surface_area.cm2)} cm²
+                    {unitSystem === 'metric' 
+                      ? `${formatNumber(platingEstimate.surface_area.in2)} in²`
+                      : `${formatNumber(platingEstimate.surface_area.cm2)} cm²`
+                    }
                   </Typography>
                 </CardContent>
               </Card>
@@ -317,10 +425,13 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
                     Metal Required
                   </Typography>
                   <Typography variant="h6">
-                    {formatNumber(platingEstimate.material_requirements.metal_mass_g)} g
+                    {convertMass(platingEstimate.material_requirements.metal_mass_g)}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
-                    {formatNumber(platingEstimate.material_requirements.metal_mass_kg, 4)} kg
+                    {unitSystem === 'metric' 
+                      ? `${formatNumber(platingEstimate.material_requirements.metal_mass_kg, 4)} kg`
+                      : `${formatNumber(platingEstimate.material_requirements.metal_mass_g * 0.035274 / 16, 4)} lbs`
+                    }
                   </Typography>
                 </CardContent>
               </Card>
@@ -387,10 +498,13 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
                     Plating Thickness
                   </Typography>
                   <Typography variant="h6">
-                    {formatNumber(platingEstimate.plating_parameters.thickness_microns)} μm
+                    {convertLength(platingEstimate.plating_parameters.thickness_microns)}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
-                    {formatNumber(platingEstimate.plating_parameters.thickness_inches * 1000, 3)} mils
+                    {unitSystem === 'metric' 
+                      ? `${formatNumber(platingEstimate.plating_parameters.thickness_inches * 1000, 3)} mils`
+                      : `${formatNumber(platingEstimate.plating_parameters.thickness_microns)} μm`
+                    }
                   </Typography>
                 </CardContent>
               </Card>

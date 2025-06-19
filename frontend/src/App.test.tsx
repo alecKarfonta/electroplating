@@ -25,21 +25,22 @@ jest.mock('./components/STLViewer', () => {
 describe('App', () => {
   it('renders without crashing', () => {
     render(<App />);
-    expect(screen.getAllByText(/Upload STL File/i)).toHaveLength(2);
+    expect(screen.getByText(/PlateForge/i)).toBeInTheDocument();
+    expect(screen.getByText(/Advanced Electroplating Calculator & 3D Analysis/i)).toBeInTheDocument();
   });
 
   it('displays main components', () => {
     render(<App />);
     
-    // Check for main sections - Calculator sections only appear after file upload
-    expect(screen.getAllByText(/Upload STL File/i)).toHaveLength(2);
-    expect(screen.getByText(/STL Analysis & Electroplating Calculator/i)).toBeInTheDocument();
+    // Check for main sections - use more specific text
+    expect(screen.getByText(/PlateForge/i)).toBeInTheDocument();
+    expect(screen.getByText(/Advanced STL analysis for precision electroplating calculations/i)).toBeInTheDocument();
   });
 
   it('shows upload section initially', () => {
     render(<App />);
     
-    expect(screen.getByText(/Drag & drop an STL file here/i)).toBeInTheDocument();
-    expect(screen.getByText(/or click to browse files/i)).toBeInTheDocument();
+    expect(screen.getByText(/Drag & drop your 3D model here, or click to browse/i)).toBeInTheDocument();
+    expect(screen.getByText(/Advanced STL analysis for precision electroplating calculations/i)).toBeInTheDocument();
   });
 }); 

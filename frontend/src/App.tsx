@@ -15,7 +15,6 @@ import {
   AccordionSummary,
   AccordionDetails,
   Backdrop,
-  useTheme,
 } from '@mui/material';
 import { 
   ThreeDRotation, 
@@ -350,7 +349,7 @@ function App() {
               WebkitTextFillColor: 'transparent',
               letterSpacing: '0.5px'
             }}>
-              PlateForge Pro
+              PlateForge
             </Typography>
             <Typography variant="body2" sx={{ 
               color: 'rgba(255, 255, 255, 0.8)',
@@ -564,9 +563,56 @@ function App() {
               border: '1px solid rgba(30, 58, 138, 0.1)'
             }}
           >
+            {/* Electroplating Accordion - Now first and more prominent */}
+            <Accordion
+              defaultExpanded
+              sx={{
+                '&:before': { display: 'none' },
+                boxShadow: 'none',
+                borderBottom: '2px solid rgba(245, 158, 11, 0.2)',
+                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(251, 191, 36, 0.05) 100%)'
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMore sx={{ color: '#f59e0b', fontSize: '2rem' }} />}
+                aria-controls="electroplating-content"
+                id="electroplating-header"
+                sx={{
+                  backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                  minHeight: '80px !important',
+                  '&:hover': {
+                    backgroundColor: 'rgba(245, 158, 11, 0.15)'
+                  },
+                  '& .MuiAccordionSummary-content': {
+                    alignItems: 'center',
+                    my: 2
+                  }
+                }}
+              >
+                <ElectricBolt sx={{ mr: 2, color: '#f59e0b', fontSize: '2.5rem' }} />
+                <Box>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e3a8a', mb: 0.5 }}>
+                    Electroplating Calculator
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: '#64748b', fontWeight: 500 }}>
+                    Professional electroplating analysis with surface area calculations
+                  </Typography>
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 4, backgroundColor: 'rgba(248, 250, 252, 0.5)' }}>
+                <ElectroplatingCalculator 
+                  onCalculate={handleElectroplatingCalculation}
+                  onGetRecommendations={handleGetRecommendations}
+                  platingEstimate={platingEstimate}
+                  recommendations={recommendations}
+                  loading={platingLoading}
+                  statistics={statistics}
+                />
+              </AccordionDetails>
+            </Accordion>
+
             {/* Analysis Accordion */}
             <Accordion 
-              defaultExpanded
               sx={{
                 '&:before': { display: 'none' },
                 boxShadow: 'none',
@@ -603,8 +649,7 @@ function App() {
             <Accordion
               sx={{
                 '&:before': { display: 'none' },
-                boxShadow: 'none',
-                borderBottom: '1px solid rgba(30, 58, 138, 0.1)'
+                boxShadow: 'none'
               }}
             >
               <AccordionSummary
@@ -628,40 +673,6 @@ function App() {
                   onCalculate={handleCostCalculation}
                   costEstimate={costEstimate}
                   loading={costLoading}
-                />
-              </AccordionDetails>
-            </Accordion>
-
-            {/* Electroplating Accordion */}
-            <Accordion
-              sx={{
-                '&:before': { display: 'none' },
-                boxShadow: 'none'
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMore sx={{ color: '#3730a3' }} />}
-                aria-controls="electroplating-content"
-                id="electroplating-header"
-                sx={{
-                  backgroundColor: 'rgba(30, 58, 138, 0.05)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(30, 58, 138, 0.08)'
-                  }
-                }}
-              >
-                <ElectricBolt sx={{ mr: 2, color: '#f59e0b', fontSize: '1.8rem' }} />
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1e3a8a' }}>
-                  Electroplating Calculator
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails sx={{ p: 3 }}>
-                <ElectroplatingCalculator 
-                  onCalculate={handleElectroplatingCalculation}
-                  onGetRecommendations={handleGetRecommendations}
-                  platingEstimate={platingEstimate}
-                  recommendations={recommendations}
-                  loading={platingLoading}
                 />
               </AccordionDetails>
             </Accordion>
