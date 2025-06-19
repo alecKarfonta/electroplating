@@ -518,13 +518,20 @@ class STLTools:
         current_max = surface_area_in2 * current_density_max
         current_recommended = (current_min + current_max) / 2
         
-        # Use fixed 4-hour plating time for 3D printed objects
-        plating_time_hours = 4.0
-        plating_time_minutes = plating_time_hours * 60
-        
-        # Calculate plating rate based on fixed time and desired thickness
+        # Calculate plating time based on thickness and plating rate
         plating_thickness_inches = plating_thickness_microns / 25400
-        actual_plating_rate = plating_thickness_inches / plating_time_minutes
+        
+        # Estimate base plating rate based on current density (empirical formula)
+        # Base rate increases with current density, typical range: 0.00005 to 0.0002 inches/min
+        current_density_avg = (current_density_min + current_density_max) / 2
+        base_plating_rate_inches_per_min = 0.00005 + (current_density_avg * 0.001)
+        
+        # Adjust plating rate based on current efficiency
+        actual_plating_rate = base_plating_rate_inches_per_min * current_efficiency
+        
+        # Calculate plating time using the formula: time = thickness / rate
+        plating_time_minutes = plating_thickness_inches / actual_plating_rate
+        plating_time_hours = plating_time_minutes / 60
         
         # Calculate metal mass required
         surface_area_cm2 = surface_area_mm2 / 100  # Convert mm² to cm²
@@ -751,35 +758,35 @@ class STLTools:
                     "Consider semi-bright nickel for better adhesion",
                     "Maintain pH between 3.5-4.5",
                     "Temperature: 45-55°C",
-                    "Standard plating time: 4 hours for 3D printed objects"
+                    "Plating time calculated based on thickness and current density"
                 ],
                 'copper': [
                     "Excellent base layer for other metals",
                     "Use cyanide-free solutions for safety",
                     "Maintain pH between 8.5-9.5",
                     "Temperature: 25-35°C",
-                    "Standard plating time: 4 hours for 3D printed objects"
+                    "Plating time calculated based on thickness and current density"
                 ],
                 'chrome': [
                     "Requires bright nickel underlayer",
                     "Use hexavalent chrome for decorative finish",
                     "Maintain temperature: 45-55°C",
                     "High current efficiency required",
-                    "Standard plating time: 4 hours for 3D printed objects"
+                    "Plating time calculated based on thickness and current density"
                 ],
                 'gold': [
                     "Use bright gold for decorative finish",
                     "Consider flash gold for cost savings",
                     "Maintain pH between 4.0-5.0",
                     "Temperature: 25-35°C",
-                    "Standard plating time: 4 hours for 3D printed objects"
+                    "Plating time calculated based on thickness and current density"
                 ],
                 'silver': [
                     "Excellent conductivity",
                     "Use bright silver for decorative finish",
                     "Maintain pH between 8.0-9.0",
                     "Temperature: 25-35°C",
-                    "Standard plating time: 4 hours for 3D printed objects"
+                    "Plating time calculated based on thickness and current density"
                 ]
             }
         }

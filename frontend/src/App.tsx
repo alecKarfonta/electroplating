@@ -686,6 +686,7 @@ function App() {
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        message={error || successMessage}
       />
     </ErrorBoundary>
   );

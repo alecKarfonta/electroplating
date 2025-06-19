@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -85,11 +85,32 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
     voltage: 3.0,
   });
 
+  const validateAndCalculate = (newFormData: ElectroplatingRequest) => {
+    // Only proceed if we have statistics (surface area data)
+    if (!statistics?.surface_area || statistics.surface_area <= 0) {
+      return;
+    }
+
+    // Validate that all required fields have valid values
+    if (
+      typeof newFormData.current_density_min === 'number' && newFormData.current_density_min > 0 &&
+      typeof newFormData.current_density_max === 'number' && newFormData.current_density_max > 0 &&
+      typeof newFormData.plating_thickness_microns === 'number' && newFormData.plating_thickness_microns > 0 &&
+      typeof newFormData.metal_density_g_cm3 === 'number' && newFormData.metal_density_g_cm3 > 0 &&
+      typeof newFormData.current_efficiency === 'number' && newFormData.current_efficiency > 0 &&
+      typeof newFormData.voltage === 'number' && newFormData.voltage > 0
+    ) {
+      onCalculate(newFormData);
+    }
+  };
+
   const handleInputChange = (field: keyof ElectroplatingRequest, value: any) => {
-    setFormData(prev => ({
-      ...prev,
+    const newFormData = {
+      ...formData,
       [field]: value,
-    }));
+    };
+    setFormData(newFormData);
+    validateAndCalculate(newFormData);
   };
 
   const handleMetalChange = (metal: 'nickel' | 'copper' | 'chrome' | 'gold' | 'silver') => {
@@ -97,18 +118,32 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
     const defaults = metalDefaults[metal];
     
     // Update form data with metal-specific defaults
-    setFormData(prev => ({
-      ...prev,
+    const newFormData = {
+      ...formData,
       current_density_min: defaults.min,
       current_density_max: defaults.max,
       metal_density_g_cm3: defaults.density,
-    }));
+    };
+    setFormData(newFormData);
+    validateAndCalculate(newFormData);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onCalculate(formData);
-  };
+  // Initial calculation when component loads with statistics
+  useEffect(() => {
+    if (statistics?.surface_area && statistics.surface_area > 0) {
+      // Only proceed if we have statistics (surface area data)
+      if (
+        typeof formData.current_density_min === 'number' && formData.current_density_min > 0 &&
+        typeof formData.current_density_max === 'number' && formData.current_density_max > 0 &&
+        typeof formData.plating_thickness_microns === 'number' && formData.plating_thickness_microns > 0 &&
+        typeof formData.metal_density_g_cm3 === 'number' && formData.metal_density_g_cm3 > 0 &&
+        typeof formData.current_efficiency === 'number' && formData.current_efficiency > 0 &&
+        typeof formData.voltage === 'number' && formData.voltage > 0
+      ) {
+        onCalculate(formData);
+      }
+    }
+  }, [statistics?.surface_area]); // Only trigger when surface area becomes available
 
   const handleGetRecommendations = () => {
     onGetRecommendations({ metal_type: selectedMetal });
@@ -165,10 +200,20 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
     <Paper elevation={3} sx={{ p: 3 }}>
       {/* Header with Unit Toggle */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <ElectricBolt sx={{ mr: 1, verticalAlign: 'middle' }} />
-          Electroplating Calculator
-        </Typography>
+          <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>
+            Electroplating Calculator
+          </Typography>
+          {loading && (
+            <Chip 
+              label="Auto-calculating..." 
+              size="small" 
+              color="primary"
+              sx={{ ml: 2, fontSize: '0.7rem' }}
+            />
+          )}
+        </Box>
         
         <ToggleButtonGroup
           value={unitSystem}
@@ -242,7 +287,7 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit}>
+      <Box>
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6}>
             <TextField
@@ -284,7 +329,7 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
               type="number"
               value={formData.metal_density_g_cm3}
               onChange={(e) => handleInputChange('metal_density_g_cm3', parseFloat(e.target.value))}
-              inputProps={{ min: 1, max: 25, step: 0.1 }}
+              inputProps={{ min: 1, max: 25, step: 0.001 }}
               helperText="Nickel: 8.9, Copper: 8.96, Gold: 19.32"
             />
           </Grid>
@@ -311,16 +356,25 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
             />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              disabled={loading}
-              startIcon={<Calculate />}
-              sx={{ height: 56 }}
+            <Alert 
+              severity="info" 
+              sx={{ 
+                height: 56,
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: 'rgba(30, 58, 138, 0.1)',
+                border: '1px solid rgba(30, 58, 138, 0.3)',
+                borderRadius: 1,
+                '& .MuiAlert-icon': {
+                  color: '#3730a3'
+                }
+              }}
+              icon={<Calculate />}
             >
-              {loading ? 'Calculating...' : 'Calculate Parameters'}
-            </Button>
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                Results auto-calculate as you type
+              </Typography>
+            </Alert>
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
@@ -350,7 +404,7 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
             </Button>
           </Grid>
         </Grid>
-      </form>
+      </Box>
 
       {platingEstimate && (
         <Box sx={{ mt: 4 }}>
