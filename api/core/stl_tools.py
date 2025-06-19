@@ -489,7 +489,7 @@ class STLTools:
     def calculate_electroplating_parameters(self, 
                                           current_density_min: float = 0.07, 
                                           current_density_max: float = 0.1,
-                                          plating_thickness_microns: float = 20.0,
+                                          plating_thickness_microns: float = 80.0,
                                           metal_density_g_cm3: float = 8.96,  # Copper
                                           current_efficiency: float = 0.95,
                                           voltage: float = 3.0) -> dict:
@@ -499,7 +499,7 @@ class STLTools:
         Args:
             current_density_min: Minimum current density in amps per square inch (default: 0.1)
             current_density_max: Maximum current density in amps per square inch (default: 0.1)
-            plating_thickness_microns: Desired plating thickness in microns (default: 20.0)
+            plating_thickness_microns: Desired plating thickness in microns (default: 80.0)
             metal_density_g_cm3: Density of plating metal in g/cm³ (default: 8.96 for copper)
             current_efficiency: Current efficiency as decimal (default: 0.95)
             voltage: Operating voltage in volts (default: 3.0)
@@ -706,7 +706,7 @@ class STLTools:
                 'color': 'Reddish-brown',
                 'hardness': 'Soft',
                 'corrosion_resistance': 'Good',
-                'typical_thickness_microns': 20.0
+                'typical_thickness_microns': 80.0
             },
             'chrome': {
                 'density_g_cm3': 7.19,

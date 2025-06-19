@@ -98,7 +98,7 @@ const mockRecommendations: ElectroplatingRecommendations = {
     color: 'reddish-brown',
     hardness: 'soft',
     corrosion_resistance: 'good',
-    typical_thickness_microns: 20
+    typical_thickness_microns: 80
   },
   calculated_parameters: {
     surface_area: { mm2: 1000, cm2: 10, in2: 1.55 },

@@ -38,7 +38,7 @@ def test_copper_calculations():
             'current_density_min': 0.07,
             'current_density_max': 0.1,
             'voltage': 3.0,
-            'typical_thickness_microns': 20.0
+            'typical_thickness_microns': 80.0
         }
         
         print(f"\nCopper Properties:")

@@ -35,7 +35,7 @@ def example_basic_electroplating():
     plating_params = stl_tools.calculate_electroplating_parameters(
         current_density_min=0.1,
         current_density_max=0.1,
-        plating_thickness_microns=20.0,
+        plating_thickness_microns=80.0,
         metal_density_g_cm3=8.96,  # Copper
         current_efficiency=0.95,
         voltage=3.0
@@ -171,7 +171,7 @@ def example_cost_analysis():
         {"name": "Standard Nickel", "thickness": 25, "metal": "nickel"},
         {"name": "Thick Nickel", "thickness": 50, "metal": "nickel"},
         {"name": "Gold Flash", "thickness": 5, "metal": "gold"},
-        {"name": "Copper Base", "thickness": 20, "metal": "copper"},
+        {"name": "Copper Base", "thickness": 80, "metal": "copper"},
     ]
     
     print("Cost comparison for different plating scenarios:")

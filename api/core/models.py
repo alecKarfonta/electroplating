@@ -112,7 +112,7 @@ class ElectroplatingRequest(BaseModel):
         description="Maximum current density in amps per square inch"
     )
     plating_thickness_microns: float = Field(
-        default=20.0,
+        default=80.0,
         gt=0,
         description="Desired plating thickness in microns"
     )

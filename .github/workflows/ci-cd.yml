@@ -215,56 +215,83 @@ jobs:
     needs: [test, security, build-and-push]
     if: github.ref == 'refs/heads/main'
     
+    permissions:
+      contents: write
+      packages: read
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Get the last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        
+        # If no previous tag, get all commits
+        if [ -z "$LAST_TAG" ]; then
+          COMMITS=$(git log --pretty=format:"- %s (%h)" --reverse)
+        else
+          COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%h)" --reverse)
+        fi
+        
+        # Create changelog
+        echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+        echo "$COMMITS" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+    
+    - name: Convert repository name to lowercase
+      id: repo_name
+      run: echo "repo_lowercase=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
     
     - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v${{ github.run_number }}
-        release_name: Release v${{ github.run_number }}
-        body: |
-          ## What's Changed
-          
-          ### 🚀 Features
-          - Rate limiting implementation
-          - Comprehensive colored logging
-          - Performance monitoring
-          - Enhanced error handling
-          
-          ### 🔧 Improvements
-          - Better security configuration
-          - Enhanced testing coverage
-          - Improved documentation
-          
-          ### 🐛 Bug Fixes
-          - Various bug fixes and improvements
-          
-          ## Docker Images
-          
-          ### Backend
-          ```bash
-          docker pull ${{ env.REGISTRY }}/$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')/backend:${{ github.sha }}
-          ```
-          
-          ### Frontend
-          ```bash
-          docker pull ${{ env.REGISTRY }}/$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')/frontend:${{ github.sha }}
-          ```
-          
-          ## Installation
-          
-          ```bash
-          # Pull the latest images
-          docker pull ${{ env.REGISTRY }}/$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')/backend:latest
-          docker pull ${{ env.REGISTRY }}/$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')/frontend:latest
-          
-          # Run with docker-compose
-          docker-compose up -d
-          ```
-        draft: false
-        prerelease: false
+      run: |
+        gh release create "v${{ github.run_number }}" \
+          --repo="${{ github.repository }}" \
+          --title="Release v${{ github.run_number }}" \
+          --notes="## What's Changed
+
+        ### 🚀 Recent Changes
+        ${{ steps.changelog.outputs.CHANGELOG }}
+
+        ### 🚀 Features
+        - Rate limiting implementation
+        - Comprehensive colored logging
+        - Performance monitoring
+        - Enhanced error handling
+
+        ### 🔧 Improvements
+        - Better security configuration
+        - Enhanced testing coverage
+        - Improved documentation
+
+        ### 🐛 Bug Fixes
+        - Various bug fixes and improvements
+
+        ## Docker Images
+
+        ### Backend
+        \`\`\`bash
+        docker pull ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/backend:${{ github.sha }}
+        \`\`\`
+
+        ### Frontend
+        \`\`\`bash
+        docker pull ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/frontend:${{ github.sha }}
+        \`\`\`
+
+        ## Installation
+
+        \`\`\`bash
+        # Pull the latest images
+        docker pull ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/backend:latest
+        docker pull ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/frontend:latest
+
+        # Run with docker-compose
+        docker-compose up -d
+        \`\`\`"
