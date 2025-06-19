@@ -54,7 +54,7 @@ interface ElectroplatingCalculatorProps {
 
 // Default current density values for different metals (A/in²)
 const metalDefaults = {
-  copper: { min: 0.07, max: 0.60, density: 8.96 },
+  copper: { min: 0.07, max: 0.1, density: 8.96 },
   nickel: { min: 0.07, max: 0.15, density: 8.9 },
   chrome: { min: 0.10, max: 0.25, density: 7.19 },
   gold: { min: 0.04, max: 0.12, density: 19.32 },

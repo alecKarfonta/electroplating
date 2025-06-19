@@ -1,5 +1,45 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <circle cx="50" cy="50" r="45" fill="#2563eb" stroke="#1e40af" stroke-width="2"/>
-  <path d="M50 20 L55 35 L70 30 L65 45 L80 50 L65 55 L70 70 L55 65 L50 80 L45 65 L30 70 L35 55 L20 50 L35 45 L30 30 L45 35 Z" fill="white"/>
-  <circle cx="50" cy="50" r="15" fill="#2563eb"/>
+  <!-- Modern gradient background -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3730a3;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="copperGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#d97706;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b45309;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="electricGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="47" fill="url(#bgGradient)" stroke="#1e40af" stroke-width="1"/>
+  
+  <!-- Central 3D object/part -->
+  <rect x="35" y="25" width="30" height="25" rx="3" fill="url(#copperGradient)" opacity="0.9"/>
+  <rect x="37" y="27" width="26" height="21" rx="2" fill="#fbbf24" opacity="0.3"/>
+  
+  <!-- Electrodes/electrical connections -->
+  <rect x="20" y="35" width="8" height="4" rx="1" fill="#374151"/>
+  <rect x="72" y="35" width="8" height="4" rx="1" fill="#374151"/>
+  
+  <!-- Electrical current lines -->
+  <path d="M28 37 L35 37" stroke="url(#electricGradient)" stroke-width="2" fill="none"/>
+  <path d="M65 37 L72 37" stroke="url(#electricGradient)" stroke-width="2" fill="none"/>
+  
+  <!-- Bath/solution container -->
+  <ellipse cx="50" cy="65" rx="25" ry="12" fill="#1e40af" opacity="0.6"/>
+  <ellipse cx="50" cy="63" rx="25" ry="12" fill="#3b82f6" opacity="0.8"/>
+  
+  <!-- Bubbles/process indication -->
+  <circle cx="42" cy="60" r="2" fill="#60a5fa" opacity="0.7"/>
+  <circle cx="58" cy="58" r="1.5" fill="#60a5fa" opacity="0.7"/>
+  <circle cx="45" cy="68" r="1" fill="#60a5fa" opacity="0.7"/>
+  
+  <!-- Lightning bolt for electrical process -->
+  <path d="M48 15 L52 15 L49 20 L53 20 L47 30 L51 25 L48 25 L52 20 Z" fill="url(#electricGradient)"/>
 </svg> 

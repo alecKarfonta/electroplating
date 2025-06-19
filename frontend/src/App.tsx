@@ -15,6 +15,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   Backdrop,
+  useTheme,
 } from '@mui/material';
 import { 
   ThreeDRotation, 
@@ -24,7 +25,8 @@ import {
   Calculate, 
   ElectricBolt, 
   AspectRatio,
-  ExpandMore 
+  ExpandMore,
+  HighQuality,
 } from '@mui/icons-material';
 
 import FileUpload from './components/FileUpload';
@@ -327,46 +329,149 @@ function App() {
   return (
     <ErrorBoundary>
       <CssBaseline />
-      <AppBar position="static">
-        <Toolbar>
-          <ThreeDRotation sx={{ mr: 2 }} />
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            STL Analysis & Electroplating Calculator
-          </Typography>
+      <AppBar 
+        position="static" 
+        sx={{ 
+          background: 'linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%)',
+          boxShadow: '0 4px 20px rgba(30, 58, 138, 0.3)'
+        }}
+      >
+        <Toolbar sx={{ minHeight: '72px !important' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
+            <ElectricBolt sx={{ mr: 1, fontSize: '2rem', color: '#fbbf24' }} />
+            <Science sx={{ mr: 1, fontSize: '1.8rem', color: '#60a5fa' }} />
+          </Box>
+          <Box sx={{ flexGrow: 1 }}>
+            <Typography variant="h5" component="div" sx={{ 
+              fontWeight: 700,
+              background: 'linear-gradient(45deg, #fbbf24, #f59e0b)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '0.5px'
+            }}>
+              PlateForge Pro
+            </Typography>
+            <Typography variant="body2" sx={{ 
+              color: 'rgba(255, 255, 255, 0.8)',
+              fontSize: '0.9rem',
+              fontWeight: 400
+            }}>
+              Advanced Electroplating Calculator & 3D Analysis
+            </Typography>
+          </Box>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            background: 'rgba(255, 255, 255, 0.1)',
+            borderRadius: 2,
+            px: 2,
+            py: 0.5
+          }}>
+            <HighQuality sx={{ mr: 0.5, color: '#fbbf24', fontSize: '1.2rem' }} />
+            <Typography variant="caption" sx={{ color: 'white', fontWeight: 500 }}>
+              Precision Metal Finishing
+            </Typography>
+          </Box>
         </Toolbar>
       </AppBar>
 
       <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
         {/* Global Loading Backdrop */}
         <Backdrop
-          sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          sx={{ 
+            color: '#fff', 
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+            background: 'rgba(30, 58, 138, 0.8)'
+          }}
           open={isLoading}
         >
-          <CircularProgress color="inherit" />
+          <Box sx={{ textAlign: 'center' }}>
+            <CircularProgress 
+              color="inherit" 
+              size={60}
+              sx={{ mb: 2, color: '#fbbf24' }}
+            />
+            <Typography variant="h6" sx={{ color: 'white', fontWeight: 500 }}>
+              Processing...
+            </Typography>
+          </Box>
         </Backdrop>
 
         {/* Error Display */}
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }} onClose={handleCloseSnackbar}>
+          <Alert 
+            severity="error" 
+            sx={{ 
+              mb: 3,
+              borderRadius: 2,
+              '& .MuiAlert-icon': {
+                color: '#dc2626'
+              }
+            }} 
+            onClose={handleCloseSnackbar}
+          >
             {error}
           </Alert>
         )}
 
         {/* Success Message */}
         {successMessage && (
-          <Alert severity="success" sx={{ mb: 3 }} onClose={handleCloseSnackbar}>
+          <Alert 
+            severity="success" 
+            sx={{ 
+              mb: 3,
+              borderRadius: 2,
+              '& .MuiAlert-icon': {
+                color: '#059669'
+              }
+            }} 
+            onClose={handleCloseSnackbar}
+          >
             {successMessage}
           </Alert>
         )}
 
         {/* File Upload Section - Always at the top */}
-        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h5" gutterBottom>
-            <CloudUpload sx={{ mr: 1, verticalAlign: 'middle' }} />
-            Upload STL File
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            Upload a 3D model file to analyze its properties and calculate electroplating parameters.
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            p: 4, 
+            mb: 3,
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%)',
+            border: '1px solid rgba(30, 58, 138, 0.1)'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <CloudUpload sx={{ 
+              mr: 2, 
+              fontSize: '2.5rem',
+              color: '#3730a3'
+            }} />
+            <Box>
+              <Typography variant="h4" gutterBottom sx={{ 
+                fontWeight: 700,
+                color: '#1e3a8a',
+                mb: 0.5
+              }}>
+                Upload Your 3D Model
+              </Typography>
+              <Typography variant="h6" color="text.secondary" sx={{ 
+                fontWeight: 400,
+                color: '#64748b'
+              }}>
+                Advanced STL analysis for precision electroplating calculations
+              </Typography>
+            </Box>
+          </Box>
+          <Typography variant="body1" color="text.secondary" sx={{ 
+            mb: 3,
+            fontSize: '1.1rem',
+            lineHeight: 1.6
+          }}>
+            Upload your 3D model file to analyze surface area, volume, and material properties. 
+            Get precise electroplating parameters, cost estimates, and process recommendations.
           </Typography>
           <FileUpload onFileSelect={handleFileSelect} loading={uploadLoading} />
         </Paper>
@@ -376,12 +481,34 @@ function App() {
           <Grid container spacing={3} sx={{ mb: 3 }}>
             {/* 3D Viewer - Takes up most of the space */}
             <Grid item xs={12} md={8}>
-              <Paper elevation={3} sx={{ p: 2, height: '600px' }}>
-                <Typography variant="h6" gutterBottom>
-                  <ThreeDRotation sx={{ mr: 1, verticalAlign: 'middle' }} />
-                  3D Model Viewer
-                </Typography>
-                <Box sx={{ height: 'calc(100% - 60px)' }}>
+              <Paper 
+                elevation={3} 
+                sx={{ 
+                  p: 3, 
+                  height: '650px',
+                  borderRadius: 3,
+                  background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <ThreeDRotation sx={{ 
+                    mr: 1.5, 
+                    fontSize: '1.8rem',
+                    color: '#3730a3'
+                  }} />
+                  <Typography variant="h5" sx={{ 
+                    fontWeight: 600,
+                    color: '#1e3a8a'
+                  }}>
+                    3D Model Viewer
+                  </Typography>
+                </Box>
+                <Box sx={{ 
+                  height: 'calc(100% - 80px)',
+                  borderRadius: 2,
+                  border: '2px solid rgba(30, 58, 138, 0.1)',
+                  background: '#ffffff'
+                }}>
                   <STLViewer 
                     sessionId={sessionId}
                     currentScale={currentScale}
@@ -392,12 +519,29 @@ function App() {
 
             {/* Scaling Controls - Next to 3D viewer */}
             <Grid item xs={12} md={4}>
-              <Paper elevation={3} sx={{ p: 2, height: '600px' }}>
-                <Typography variant="h6" gutterBottom>
-                  <AspectRatio sx={{ mr: 1, verticalAlign: 'middle' }} />
-                  Scale & Transform
-                </Typography>
-                <Box sx={{ height: 'calc(100% - 60px)', overflowY: 'auto' }}>
+              <Paper 
+                elevation={3} 
+                sx={{ 
+                  p: 3, 
+                  height: '650px',
+                  borderRadius: 3,
+                  background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <AspectRatio sx={{ 
+                    mr: 1.5, 
+                    fontSize: '1.8rem',
+                    color: '#3730a3'
+                  }} />
+                  <Typography variant="h5" sx={{ 
+                    fontWeight: 600,
+                    color: '#1e3a8a'
+                  }}>
+                    Scale & Transform
+                  </Typography>
+                </Box>
+                <Box sx={{ height: 'calc(100% - 80px)', overflowY: 'auto' }}>
                   <ScaleControls 
                     onScale={handleScale}
                     onReset={handleReset}
@@ -412,18 +556,40 @@ function App() {
 
         {/* Analysis, Cost Calculator, and Electroplating in Accordion */}
         {currentFile && (
-          <Paper elevation={3}>
+          <Paper 
+            elevation={3}
+            sx={{
+              borderRadius: 3,
+              overflow: 'hidden',
+              border: '1px solid rgba(30, 58, 138, 0.1)'
+            }}
+          >
             {/* Analysis Accordion */}
-            <Accordion defaultExpanded>
+            <Accordion 
+              defaultExpanded
+              sx={{
+                '&:before': { display: 'none' },
+                boxShadow: 'none',
+                borderBottom: '1px solid rgba(30, 58, 138, 0.1)'
+              }}
+            >
               <AccordionSummary
-                expandIcon={<ExpandMore />}
+                expandIcon={<ExpandMore sx={{ color: '#3730a3' }} />}
                 aria-controls="analysis-content"
                 id="analysis-header"
+                sx={{
+                  backgroundColor: 'rgba(30, 58, 138, 0.05)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(30, 58, 138, 0.08)'
+                  }
+                }}
               >
-                <Analytics sx={{ mr: 2 }} />
-                <Typography variant="h6">Analysis</Typography>
+                <Analytics sx={{ mr: 2, color: '#3730a3', fontSize: '1.8rem' }} />
+                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1e3a8a' }}>
+                  Model Analysis
+                </Typography>
               </AccordionSummary>
-              <AccordionDetails>
+              <AccordionDetails sx={{ p: 3 }}>
                 <MeshStats 
                   statistics={statistics}
                   validation={validation}
@@ -434,16 +600,30 @@ function App() {
             </Accordion>
 
             {/* Cost Calculator Accordion */}
-            <Accordion>
+            <Accordion
+              sx={{
+                '&:before': { display: 'none' },
+                boxShadow: 'none',
+                borderBottom: '1px solid rgba(30, 58, 138, 0.1)'
+              }}
+            >
               <AccordionSummary
-                expandIcon={<ExpandMore />}
+                expandIcon={<ExpandMore sx={{ color: '#3730a3' }} />}
                 aria-controls="cost-content"
                 id="cost-header"
+                sx={{
+                  backgroundColor: 'rgba(30, 58, 138, 0.05)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(30, 58, 138, 0.08)'
+                  }
+                }}
               >
-                <Calculate sx={{ mr: 2 }} />
-                <Typography variant="h6">Cost Calculator</Typography>
+                <Calculate sx={{ mr: 2, color: '#3730a3', fontSize: '1.8rem' }} />
+                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1e3a8a' }}>
+                  Cost Calculator
+                </Typography>
               </AccordionSummary>
-              <AccordionDetails>
+              <AccordionDetails sx={{ p: 3 }}>
                 <CostCalculator 
                   onCalculate={handleCostCalculation}
                   costEstimate={costEstimate}
@@ -453,16 +633,29 @@ function App() {
             </Accordion>
 
             {/* Electroplating Accordion */}
-            <Accordion>
+            <Accordion
+              sx={{
+                '&:before': { display: 'none' },
+                boxShadow: 'none'
+              }}
+            >
               <AccordionSummary
-                expandIcon={<ExpandMore />}
+                expandIcon={<ExpandMore sx={{ color: '#3730a3' }} />}
                 aria-controls="electroplating-content"
                 id="electroplating-header"
+                sx={{
+                  backgroundColor: 'rgba(30, 58, 138, 0.05)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(30, 58, 138, 0.08)'
+                  }
+                }}
               >
-                <ElectricBolt sx={{ mr: 2 }} />
-                <Typography variant="h6">Electroplating</Typography>
+                <ElectricBolt sx={{ mr: 2, color: '#f59e0b', fontSize: '1.8rem' }} />
+                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1e3a8a' }}>
+                  Electroplating Calculator
+                </Typography>
               </AccordionSummary>
-              <AccordionDetails>
+              <AccordionDetails sx={{ p: 3 }}>
                 <ElectroplatingCalculator 
                   onCalculate={handleElectroplatingCalculation}
                   onGetRecommendations={handleGetRecommendations}
