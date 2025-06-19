@@ -689,7 +689,7 @@ class STLTools:
                 'current_density_min': 0.07,
                 'current_density_max': 0.1,
                 'voltage': 6.0,
-                'plating_rate_microns_per_min': 0.4,  # Realistic rate: ~0.4 µm/min at 0.085 A/in²
+                'plating_rate_inches_per_min': 0.4 / 25400,  # Convert µm/min to inches/min (0.4 µm/min)
                 'solution_cost_per_kg': 50.0,
                 'color': 'Silver-gray',
                 'hardness': 'Hard',
@@ -701,7 +701,7 @@ class STLTools:
                 'current_density_min': 0.07,
                 'current_density_max': 0.1,
                 'voltage': 3.0,
-                'plating_rate_microns_per_min': 0.45,  # Realistic rate: ~0.45 µm/min at 0.085 A/in²
+                'plating_rate_inches_per_min': 0.45 / 25400,  # Convert µm/min to inches/min (0.45 µm/min)
                 'solution_cost_per_kg': 30.0,
                 'color': 'Reddish-brown',
                 'hardness': 'Soft',
@@ -713,7 +713,7 @@ class STLTools:
                 'current_density_min': 0.1,
                 'current_density_max': 0.15,
                 'voltage': 12.0,
-                'plating_rate_microns_per_min': 0.25,  # Realistic rate: ~0.25 µm/min at 0.125 A/in²
+                'plating_rate_inches_per_min': 0.25 / 25400,  # Convert µm/min to inches/min (0.25 µm/min)
                 'solution_cost_per_kg': 80.0,
                 'color': 'Bright silver',
                 'hardness': 'Very hard',
@@ -725,7 +725,7 @@ class STLTools:
                 'current_density_min': 0.02,
                 'current_density_max': 0.05,
                 'voltage': 3.0,
-                'plating_rate_microns_per_min': 0.15,  # Realistic rate: ~0.15 µm/min at 0.035 A/in²
+                'plating_rate_inches_per_min': 0.15 / 25400,  # Convert µm/min to inches/min (0.15 µm/min)
                 'solution_cost_per_kg': 2000.0,
                 'color': 'Yellow',
                 'hardness': 'Soft',
@@ -737,7 +737,7 @@ class STLTools:
                 'current_density_min': 0.03,
                 'current_density_max': 0.06,
                 'voltage': 2.0,
-                'plating_rate_microns_per_min': 0.2,  # Realistic rate: ~0.2 µm/min at 0.045 A/in²
+                'plating_rate_inches_per_min': 0.2 / 25400,  # Convert µm/min to inches/min (0.2 µm/min)
                 'solution_cost_per_kg': 500.0,
                 'color': 'Bright silver',
                 'hardness': 'Soft',  

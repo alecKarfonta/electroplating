@@ -20,6 +20,10 @@ import {
   ListItemIcon,
   ToggleButton,
   ToggleButtonGroup,
+  Divider,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import {
   Calculate,
@@ -33,6 +37,14 @@ import {
   Info,
   AspectRatio,
   SwapHoriz,
+  Settings,
+  AutoAwesome,
+  Speed,
+  BatteryChargingFull,
+  Engineering,
+  ExpandMore,
+  TrendingUp,
+  Layers,
 } from '@mui/icons-material';
 import {
   ElectroplatingRequest,
@@ -64,6 +76,12 @@ const metalDefaults = {
   silver: { min: 0.03, max: 0.15, density: 10.49 }
 };
 
+// Default thickness values
+const defaultThickness = {
+  metric: 20.0, // microns
+  imperial: 0.787 // mils (20 microns converted)
+};
+
 const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
   onCalculate,
   onGetRecommendations,
@@ -75,11 +93,12 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
 }) => {
   const [selectedMetal, setSelectedMetal] = useState<'nickel' | 'copper' | 'chrome' | 'gold' | 'silver'>('copper');
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
+  const [thicknessInput, setThicknessInput] = useState<number>(defaultThickness.metric);
   
   const [formData, setFormData] = useState<ElectroplatingRequest>({
     current_density_min: metalDefaults.copper.min,
     current_density_max: metalDefaults.copper.max,
-    plating_thickness_microns: 20.0,
+    plating_thickness_microns: defaultThickness.metric,
     metal_density_g_cm3: metalDefaults.copper.density,
     current_efficiency: 0.95,
     voltage: 3.0,
@@ -108,6 +127,20 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
     const newFormData = {
       ...formData,
       [field]: value,
+    };
+    setFormData(newFormData);
+    validateAndCalculate(newFormData);
+  };
+
+  const handleThicknessChange = (value: number) => {
+    setThicknessInput(value);
+    
+    // Convert to microns for the form data
+    const microns = unitSystem === 'metric' ? value : value * 25.4; // Convert mils to microns
+    
+    const newFormData = {
+      ...formData,
+      plating_thickness_microns: microns,
     };
     setFormData(newFormData);
     validateAndCalculate(newFormData);
@@ -178,6 +211,17 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
 
   const handleUnitSystemChange = (newSystem: UnitSystem) => {
     setUnitSystem(newSystem);
+    
+    // Convert thickness input to new unit system
+    if (newSystem === 'imperial') {
+      // Convert microns to mils
+      const mils = thicknessInput * 0.0393701 / 1000;
+      setThicknessInput(mils);
+    } else {
+      // Convert mils to microns
+      const microns = thicknessInput * 25.4;
+      setThicknessInput(microns);
+    }
   };
 
   const formatNumber = (num: number, decimals = 2) => {
@@ -196,13 +240,21 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
     return `${mins}m`;
   };
 
+  const getThicknessLabel = () => {
+    return unitSystem === 'metric' ? 'Plating Thickness (μm)' : 'Plating Thickness (mils)';
+  };
+
+  const getThicknessHelperText = () => {
+    return unitSystem === 'metric' ? 'Typical range: 5-50 μm' : 'Typical range: 0.2-2.0 mils';
+  };
+
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
       {/* Header with Unit Toggle */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <ElectricBolt sx={{ mr: 1, verticalAlign: 'middle' }} />
-          <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>
+          <Engineering sx={{ mr: 1, fontSize: '2rem', color: '#3b82f6' }} />
+          <Typography variant="h5" sx={{ fontWeight: 700, color: '#1e293b' }}>
             Electroplating Calculator
           </Typography>
           {loading && (
@@ -224,10 +276,10 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
             '& .MuiToggleButton-root': {
               fontWeight: 600,
               '&.Mui-selected': {
-                backgroundColor: '#f59e0b',
+                backgroundColor: '#3b82f6',
                 color: 'white',
                 '&:hover': {
-                  backgroundColor: '#d97706',
+                  backgroundColor: '#2563eb',
                 }
               }
             }
@@ -244,27 +296,27 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
         </ToggleButtonGroup>
       </Box>
 
-      {/* Surface Area Display - Prominent when statistics available */}
+      {/* Surface Area Display - Only show if statistics available */}
       {statistics && (
         <Alert 
           severity="info" 
           sx={{ 
             mb: 3,
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
-            border: '2px solid rgba(245, 158, 11, 0.3)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            border: '2px solid rgba(59, 130, 246, 0.3)',
             borderRadius: 2,
             '& .MuiAlert-icon': {
-              color: '#f59e0b'
+              color: '#3b82f6'
             }
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <AspectRatio sx={{ fontSize: '2rem', color: '#f59e0b' }} />
+            <Layers sx={{ fontSize: '2rem', color: '#3b82f6' }} />
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e3a8a', mb: 0.5 }}>
                 Model Surface Area
               </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: '#f59e0b' }}>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: '#3b82f6' }}>
                 {unitSystem === 'metric' 
                   ? `${formatNumber(statistics.surface_area)} mm²` 
                   : `${formatNumber(statistics.surface_area * 0.00155)} in²`
@@ -287,165 +339,196 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
         </Alert>
       )}
 
-      <Box>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Min Current Density (A/in²)"
-              type="number"
-              value={formData.current_density_min}
-              onChange={(e) => handleInputChange('current_density_min', parseFloat(e.target.value))}
-              inputProps={{ min: 0.01, max: 1, step: 0.01 }}
-              helperText="Typical range: 0.05-0.15 A/in²"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Max Current Density (A/in²)"
-              type="number"
-              value={formData.current_density_max}
-              onChange={(e) => handleInputChange('current_density_max', parseFloat(e.target.value))}
-              inputProps={{ min: 0.01, max: 1, step: 0.01 }}
-              helperText="Typical range: 0.05-0.15 A/in²"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Plating Thickness (μm)"
-              type="number"
-              value={formData.plating_thickness_microns}
-              onChange={(e) => handleInputChange('plating_thickness_microns', parseFloat(e.target.value))}
-              inputProps={{ min: 1, max: 1000, step: 1 }}
-              helperText="Typical range: 5-50 μm"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Metal Density (g/cm³)"
-              type="number"
-              value={formData.metal_density_g_cm3}
-              onChange={(e) => handleInputChange('metal_density_g_cm3', parseFloat(e.target.value))}
-              inputProps={{ min: 1, max: 25, step: 0.001 }}
-              helperText="Nickel: 8.9, Copper: 8.96, Gold: 19.32"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Current Efficiency"
-              type="number"
-              value={formData.current_efficiency}
-              onChange={(e) => handleInputChange('current_efficiency', parseFloat(e.target.value))}
-              inputProps={{ min: 0.1, max: 1, step: 0.01 }}
-              helperText="Typical range: 0.85-0.98"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Voltage (V)"
-              type="number"
-              value={formData.voltage}
-              onChange={(e) => handleInputChange('voltage', parseFloat(e.target.value))}
-              inputProps={{ min: 1, max: 20, step: 0.1 }}
-              helperText="Typical range: 3-12V"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Alert 
-              severity="info" 
-              sx={{ 
-                height: 56,
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: 'rgba(30, 58, 138, 0.1)',
-                border: '1px solid rgba(30, 58, 138, 0.3)',
-                borderRadius: 1,
-                '& .MuiAlert-icon': {
-                  color: '#3730a3'
-                }
-              }}
-              icon={<Calculate />}
-            >
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                Results auto-calculate as you type
-              </Typography>
-            </Alert>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Metal Type</InputLabel>
-              <Select
-                value={selectedMetal}
-                label="Metal Type"
-                onChange={(e) => handleMetalChange(e.target.value as any)}
+      {/* Input Parameters Section */}
+      <Accordion defaultExpanded sx={{ mb: 3, boxShadow: 'none', border: '1px solid #e2e8f0' }}>
+        <AccordionSummary expandIcon={<ExpandMore />} sx={{ backgroundColor: '#f8fafc' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Settings sx={{ mr: 1, color: '#6366f1' }} />
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Input Parameters
+            </Typography>
+          </Box>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Min Current Density (A/in²)"
+                type="number"
+                value={formData.current_density_min}
+                onChange={(e) => handleInputChange('current_density_min', parseFloat(e.target.value))}
+                inputProps={{ min: 0.01, max: 1, step: 0.01 }}
+                helperText="Typical range: 0.05-0.15 A/in²"
+                InputProps={{
+                  startAdornment: <BatteryChargingFull sx={{ mr: 1, color: '#6b7280' }} />
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Max Current Density (A/in²)"
+                type="number"
+                value={formData.current_density_max}
+                onChange={(e) => handleInputChange('current_density_max', parseFloat(e.target.value))}
+                inputProps={{ min: 0.01, max: 1, step: 0.01 }}
+                helperText="Typical range: 0.05-0.15 A/in²"
+                InputProps={{
+                  startAdornment: <BatteryChargingFull sx={{ mr: 1, color: '#6b7280' }} />
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label={getThicknessLabel()}
+                type="number"
+                value={thicknessInput}
+                onChange={(e) => handleThicknessChange(parseFloat(e.target.value))}
+                inputProps={{ 
+                  min: unitSystem === 'metric' ? 1 : 0.04,
+                  max: unitSystem === 'metric' ? 1000 : 39.37,
+                  step: unitSystem === 'metric' ? 1 : 0.1
+                }}
+                helperText={getThicknessHelperText()}
+                InputProps={{
+                  startAdornment: <Layers sx={{ mr: 1, color: '#6b7280' }} />
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Metal Density (g/cm³)"
+                type="number"
+                value={formData.metal_density_g_cm3}
+                onChange={(e) => handleInputChange('metal_density_g_cm3', parseFloat(e.target.value))}
+                inputProps={{ min: 1, max: 25, step: 0.001 }}
+                helperText="Nickel: 8.9, Copper: 8.96, Gold: 19.32"
+                InputProps={{
+                  startAdornment: <Scale sx={{ mr: 1, color: '#6b7280' }} />
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Current Efficiency"
+                type="number"
+                value={formData.current_efficiency}
+                onChange={(e) => handleInputChange('current_efficiency', parseFloat(e.target.value))}
+                inputProps={{ min: 0.1, max: 1, step: 0.01 }}
+                helperText="Typical range: 0.85-0.98"
+                InputProps={{
+                  startAdornment: <Speed sx={{ mr: 1, color: '#6b7280' }} />
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Voltage (V)"
+                type="number"
+                value={formData.voltage}
+                onChange={(e) => handleInputChange('voltage', parseFloat(e.target.value))}
+                inputProps={{ min: 1, max: 20, step: 0.1 }}
+                helperText="Typical range: 3-12V"
+                InputProps={{
+                  startAdornment: <ElectricBolt sx={{ mr: 1, color: '#6b7280' }} />
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Alert 
+                severity="info" 
+                sx={{ 
+                  height: 56,
+                  display: 'flex',
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  borderRadius: 1,
+                  '& .MuiAlert-icon': {
+                    color: '#6366f1'
+                  }
+                }}
+                icon={<AutoAwesome />}
               >
-                <MenuItem value="nickel">Nickel</MenuItem>
-                <MenuItem value="copper">Copper</MenuItem>
-                <MenuItem value="chrome">Chrome</MenuItem>
-                <MenuItem value="gold">Gold</MenuItem>
-                <MenuItem value="silver">Silver</MenuItem>
-              </Select>
-            </FormControl>
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  Results auto-calculate as you type
+                </Typography>
+              </Alert>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Metal Type</InputLabel>
+                <Select
+                  value={selectedMetal}
+                  label="Metal Type"
+                  onChange={(e) => handleMetalChange(e.target.value as any)}
+                >
+                  <MenuItem value="nickel">Nickel</MenuItem>
+                  <MenuItem value="copper">Copper</MenuItem>
+                  <MenuItem value="chrome">Chrome</MenuItem>
+                  <MenuItem value="gold">Gold</MenuItem>
+                  <MenuItem value="silver">Silver</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <Button
+                variant="outlined"
+                fullWidth
+                disabled={loading}
+                startIcon={<Science />}
+                onClick={handleGetRecommendations}
+                sx={{ 
+                  py: 1.5,
+                  borderColor: '#6366f1',
+                  color: '#6366f1',
+                  '&:hover': {
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)'
+                  }
+                }}
+              >
+                Get {selectedMetal.charAt(0).toUpperCase() + selectedMetal.slice(1)} Recommendations
+              </Button>
+            </Grid>
           </Grid>
-          <Grid item xs={12}>
-            <Button
-              variant="outlined"
-              fullWidth
-              disabled={loading}
-              startIcon={<Science />}
-              onClick={handleGetRecommendations}
-            >
-              Get {selectedMetal.charAt(0).toUpperCase() + selectedMetal.slice(1)} Recommendations
-            </Button>
-          </Grid>
-        </Grid>
-      </Box>
+        </AccordionDetails>
+      </Accordion>
 
+      {/* Results Section */}
       {platingEstimate && (
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            <ElectricBolt sx={{ mr: 1, verticalAlign: 'middle' }} />
-            Electroplating Results
-          </Typography>
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            <TrendingUp sx={{ mr: 1, fontSize: '1.5rem', color: '#059669' }} />
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b' }}>
+              Calculation Results
+            </Typography>
+          </Box>
           
           <Grid container spacing={2}>
-            {/* Surface Area */}
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', border: '2px solid rgba(245, 158, 11, 0.3)' }}>
-                <CardContent>
-                  <Typography color="textSecondary" gutterBottom>
-                    <AspectRatio sx={{ mr: 0.5, verticalAlign: 'middle' }} />
-                    Surface Area
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#f59e0b' }}>
-                    {formatNumber(convertArea(platingEstimate.surface_area))} {getAreaUnit()}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {unitSystem === 'metric' 
-                      ? `${formatNumber(platingEstimate.surface_area.in2)} in²`
-                      : `${formatNumber(platingEstimate.surface_area.cm2)} cm²`
-                    }
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
             {/* Current Requirements */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ backgroundColor: 'primary.light', color: 'white' }}>
+              <Card sx={{ 
+                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', 
+                color: 'white',
+                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+              }}>
                 <CardContent>
-                  <Typography color="inherit" gutterBottom>
-                    Recommended Current
-                  </Typography>
-                  <Typography variant="h6" color="inherit">
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <BatteryChargingFull sx={{ mr: 1 }} />
+                    <Typography variant="subtitle2" color="inherit">
+                      Recommended Current
+                    </Typography>
+                  </Box>
+                  <Typography variant="h6" color="inherit" sx={{ fontWeight: 700 }}>
                     {formatNumber(platingEstimate.current_requirements.recommended_amps)} A
                   </Typography>
-                  <Typography variant="body2" color="inherit">
+                  <Typography variant="body2" color="inherit" sx={{ opacity: 0.9 }}>
                     Range: {formatNumber(platingEstimate.current_requirements.min_amps)} - {formatNumber(platingEstimate.current_requirements.max_amps)} A
                   </Typography>
                 </CardContent>
@@ -454,13 +537,15 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
 
             {/* Plating Time */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card>
+              <Card sx={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                 <CardContent>
-                  <Typography color="textSecondary" gutterBottom>
-                    <Timer sx={{ mr: 0.5, verticalAlign: 'middle' }} />
-                    Plating Time
-                  </Typography>
-                  <Typography variant="h6">
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Timer sx={{ mr: 1, color: '#f59e0b' }} />
+                    <Typography variant="subtitle2" color="textSecondary">
+                      Plating Time
+                    </Typography>
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b' }}>
                     {formatTime(platingEstimate.plating_parameters.plating_time_minutes)}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
@@ -472,13 +557,15 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
 
             {/* Metal Mass */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card>
+              <Card sx={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                 <CardContent>
-                  <Typography color="textSecondary" gutterBottom>
-                    <Scale sx={{ mr: 0.5, verticalAlign: 'middle' }} />
-                    Metal Required
-                  </Typography>
-                  <Typography variant="h6">
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Scale sx={{ mr: 1, color: '#8b5cf6' }} />
+                    <Typography variant="subtitle2" color="textSecondary">
+                      Metal Required
+                    </Typography>
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b' }}>
                     {convertMass(platingEstimate.material_requirements.metal_mass_g)}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
@@ -493,12 +580,15 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
 
             {/* Power Requirements */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card>
+              <Card sx={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                 <CardContent>
-                  <Typography color="textSecondary" gutterBottom>
-                    Power
-                  </Typography>
-                  <Typography variant="h6">
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <ElectricBolt sx={{ mr: 1, color: '#ef4444' }} />
+                    <Typography variant="subtitle2" color="textSecondary">
+                      Power
+                    </Typography>
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b' }}>
                     {formatNumber(platingEstimate.power_requirements.power_watts)} W
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
@@ -510,16 +600,22 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
 
             {/* Cost Estimates */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ backgroundColor: 'success.light', color: 'white' }}>
+              <Card sx={{ 
+                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', 
+                color: 'white',
+                boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)'
+              }}>
                 <CardContent>
-                  <Typography color="inherit" gutterBottom>
-                    <AttachMoney sx={{ mr: 0.5, verticalAlign: 'middle' }} />
-                    Total Cost
-                  </Typography>
-                  <Typography variant="h6" color="inherit">
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <AttachMoney sx={{ mr: 1 }} />
+                    <Typography variant="subtitle2" color="inherit">
+                      Total Cost
+                    </Typography>
+                  </Box>
+                  <Typography variant="h6" color="inherit" sx={{ fontWeight: 700 }}>
                     ${formatNumber(platingEstimate.cost_estimates.total_cost)}
                   </Typography>
-                  <Typography variant="body2" color="inherit">
+                  <Typography variant="body2" color="inherit" sx={{ opacity: 0.9 }}>
                     Elec: ${formatNumber(platingEstimate.cost_estimates.electricity_cost)} | 
                     Sol: ${formatNumber(platingEstimate.cost_estimates.solution_cost)}
                   </Typography>
@@ -529,12 +625,15 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
 
             {/* Quality Factors */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card>
+              <Card sx={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                 <CardContent>
-                  <Typography color="textSecondary" gutterBottom>
-                    Coverage Efficiency
-                  </Typography>
-                  <Typography variant="h6">
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <AutoAwesome sx={{ mr: 1, color: '#06b6d4' }} />
+                    <Typography variant="subtitle2" color="textSecondary">
+                      Coverage Efficiency
+                    </Typography>
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b' }}>
                     {formatNumber(platingEstimate.quality_factors.coverage_efficiency * 100)}%
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
@@ -546,12 +645,15 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
 
             {/* Thickness */}
             <Grid item xs={12} sm={6} md={3}>
-              <Card>
+              <Card sx={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                 <CardContent>
-                  <Typography color="textSecondary" gutterBottom>
-                    Plating Thickness
-                  </Typography>
-                  <Typography variant="h6">
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Layers sx={{ mr: 1, color: '#84cc16' }} />
+                    <Typography variant="subtitle2" color="textSecondary">
+                      Plating Thickness
+                    </Typography>
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b' }}>
                     {convertLength(platingEstimate.plating_parameters.thickness_microns)}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
@@ -564,123 +666,143 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
               </Card>
             </Grid>
           </Grid>
-
-          {/* Recommendations */}
-          <Box sx={{ mt: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              <Lightbulb sx={{ mr: 1, verticalAlign: 'middle' }} />
-              Recommendations
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6} md={4}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="subtitle1" gutterBottom>
-                      Settings
-                    </Typography>
-                    <List dense>
-                      <ListItem>
-                        <ListItemIcon><CheckCircle color="primary" /></ListItemIcon>
-                        <ListItemText 
-                          primary="Current" 
-                          secondary={platingEstimate.recommendations.current_setting} 
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemIcon><CheckCircle color="primary" /></ListItemIcon>
-                        <ListItemText 
-                          primary="Voltage" 
-                          secondary={platingEstimate.recommendations.voltage_setting} 
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemIcon><Timer color="primary" /></ListItemIcon>
-                        <ListItemText 
-                          primary="Time" 
-                          secondary={platingEstimate.recommendations.time_setting} 
-                        />
-                      </ListItem>
-                    </List>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="subtitle1" gutterBottom>
-                      Preparation
-                    </Typography>
-                    <List dense>
-                      <ListItem>
-                        <ListItemIcon><Info color="info" /></ListItemIcon>
-                        <ListItemText 
-                          primary="Surface Prep" 
-                          secondary={platingEstimate.recommendations.surface_preparation} 
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemIcon><Info color="info" /></ListItemIcon>
-                        <ListItemText 
-                          primary="Temperature" 
-                          secondary={platingEstimate.recommendations.solution_temperature} 
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemIcon><Info color="info" /></ListItemIcon>
-                        <ListItemText 
-                          primary="Agitation" 
-                          secondary={platingEstimate.recommendations.agitation} 
-                        />
-                      </ListItem>
-                    </List>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="subtitle1" gutterBottom>
-                      Quality Factors
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <Chip 
-                        label={`Coverage: ${formatNumber(platingEstimate.quality_factors.coverage_efficiency * 100)}%`}
-                        color={platingEstimate.quality_factors.coverage_efficiency > 0.8 ? 'success' : 'warning'}
-                        size="small"
-                      />
-                      <Chip 
-                        label={`Efficiency: ${formatNumber(platingEstimate.quality_factors.current_efficiency * 100)}%`}
-                        color="primary"
-                        size="small"
-                      />
-                      <Chip 
-                        label={`Surface Factor: ${formatNumber(platingEstimate.quality_factors.surface_roughness_factor, 2)}`}
-                        color={platingEstimate.quality_factors.surface_roughness_factor < 1.2 ? 'success' : 'warning'}
-                        size="small"
-                      />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </Box>
         </Box>
       )}
 
+      {/* Process Recommendations Section */}
+      {platingEstimate && (
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            <Lightbulb sx={{ mr: 1, fontSize: '1.5rem', color: '#f59e0b' }} />
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b' }}>
+              Process Recommendations
+            </Typography>
+          </Box>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6} md={4}>
+              <Card sx={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Settings sx={{ mr: 1, color: '#6366f1' }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      Equipment Settings
+                    </Typography>
+                  </Box>
+                  <List dense>
+                    <ListItem>
+                      <ListItemIcon><CheckCircle color="primary" /></ListItemIcon>
+                      <ListItemText 
+                        primary="Current" 
+                        secondary={platingEstimate.recommendations.current_setting} 
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon><CheckCircle color="primary" /></ListItemIcon>
+                      <ListItemText 
+                        primary="Voltage" 
+                        secondary={platingEstimate.recommendations.voltage_setting} 
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon><Timer color="primary" /></ListItemIcon>
+                      <ListItemText 
+                        primary="Time" 
+                        secondary={platingEstimate.recommendations.time_setting} 
+                      />
+                    </ListItem>
+                  </List>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <Card sx={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Science sx={{ mr: 1, color: '#059669' }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      Process Preparation
+                    </Typography>
+                  </Box>
+                  <List dense>
+                    <ListItem>
+                      <ListItemIcon><Info color="info" /></ListItemIcon>
+                      <ListItemText 
+                        primary="Surface Prep" 
+                        secondary={platingEstimate.recommendations.surface_preparation} 
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon><Info color="info" /></ListItemIcon>
+                      <ListItemText 
+                        primary="Temperature" 
+                        secondary={platingEstimate.recommendations.solution_temperature} 
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon><Info color="info" /></ListItemIcon>
+                      <ListItemText 
+                        primary="Agitation" 
+                        secondary={platingEstimate.recommendations.agitation} 
+                      />
+                    </ListItem>
+                  </List>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <Card sx={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <AutoAwesome sx={{ mr: 1, color: '#8b5cf6' }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      Quality Metrics
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Chip 
+                      label={`Coverage: ${formatNumber(platingEstimate.quality_factors.coverage_efficiency * 100)}%`}
+                      color={platingEstimate.quality_factors.coverage_efficiency > 0.8 ? 'success' : 'warning'}
+                      size="small"
+                    />
+                    <Chip 
+                      label={`Efficiency: ${formatNumber(platingEstimate.quality_factors.current_efficiency * 100)}%`}
+                      color="primary"
+                      size="small"
+                    />
+                    <Chip 
+                      label={`Surface Factor: ${formatNumber(platingEstimate.quality_factors.surface_roughness_factor, 2)}`}
+                      color={platingEstimate.quality_factors.surface_roughness_factor < 1.2 ? 'success' : 'warning'}
+                      size="small"
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Box>
+      )}
+
+      {/* Metal-Specific Recommendations Section */}
       {recommendations && (
         <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            <Science sx={{ mr: 1, verticalAlign: 'middle' }} />
-            {recommendations.metal_properties.color} {selectedMetal.charAt(0).toUpperCase() + selectedMetal.slice(1)} Recommendations
-          </Typography>
+          <Divider sx={{ mb: 3 }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            <Science sx={{ mr: 1, fontSize: '1.5rem', color: '#8b5cf6' }} />
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b' }}>
+              {recommendations.metal_properties.color} {selectedMetal.charAt(0).toUpperCase() + selectedMetal.slice(1)} Specifications
+            </Typography>
+          </Box>
           
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <Card>
+              <Card sx={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Metal Properties
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Engineering sx={{ mr: 1, color: '#6366f1' }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      Metal Properties
+                    </Typography>
+                  </Box>
                   <List dense>
                     <ListItem>
                       <ListItemText 
@@ -711,15 +833,18 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
               </Card>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Card>
+              <Card sx={{ height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Metal-Specific Tips
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Lightbulb sx={{ mr: 1, color: '#f59e0b' }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      Metal-Specific Tips
+                    </Typography>
+                  </Box>
                   <List dense>
                     {recommendations.metal_specific_tips[selectedMetal]?.map((tip, index) => (
                       <ListItem key={index}>
-                        <ListItemIcon><Lightbulb color="primary" /></ListItemIcon>
+                        <ListItemIcon><CheckCircle color="success" sx={{ fontSize: '1rem' }} /></ListItemIcon>
                         <ListItemText primary={tip} />
                       </ListItem>
                     ))}

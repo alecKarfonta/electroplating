@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1750364132119" clover="3.2.0">
-  <project timestamp="1750364132119" name="All files">
-    <metrics statements="422" coveredstatements="51" conditionals="211" coveredconditionals="36" methods="94" coveredmethods="12" elements="727" coveredelements="99" complexity="0" loc="422" ncloc="422" packages="4" files="10" classes="10"/>
+<coverage generated="1750366455711" clover="3.2.0">
+  <project timestamp="1750366455711" name="All files">
+    <metrics statements="449" coveredstatements="52" conditionals="263" coveredconditionals="38" methods="96" coveredmethods="12" elements="808" coveredelements="102" complexity="0" loc="449" ncloc="449" packages="4" files="10" classes="10"/>
     <package name="src">
-      <metrics statements="150" coveredstatements="33" conditionals="56" coveredconditionals="12" methods="16" coveredmethods="5"/>
+      <metrics statements="150" coveredstatements="33" conditionals="58" coveredconditionals="14" methods="16" coveredmethods="5"/>
       <file name="App.tsx" path="/home/alec/git/electroplating/frontend/src/App.tsx">
-        <metrics statements="147" coveredstatements="33" conditionals="56" coveredconditionals="12" methods="16" coveredmethods="5"/>
+        <metrics statements="147" coveredstatements="33" conditionals="58" coveredconditionals="14" methods="16" coveredmethods="5"/>
         <line num="67" count="3" type="stmt"/>
         <line num="68" count="3" type="stmt"/>
         <line num="72" count="0" type="stmt"/>
@@ -162,7 +162,7 @@
       </file>
     </package>
     <package name="src.components">
-      <metrics statements="217" coveredstatements="18" conditionals="153" coveredconditionals="24" methods="61" coveredmethods="7"/>
+      <metrics statements="244" coveredstatements="19" conditionals="203" coveredconditionals="24" methods="63" coveredmethods="7"/>
       <file name="CostCalculator.tsx" path="/home/alec/git/electroplating/frontend/src/components/CostCalculator.tsx">
         <metrics statements="11" coveredstatements="10" conditionals="8" coveredconditionals="6" methods="7" coveredmethods="6"/>
         <line num="27" count="2" type="stmt"/>
@@ -178,57 +178,84 @@
         <line num="94" count="0" type="stmt"/>
       </file>
       <file name="ElectroplatingCalculator.tsx" path="/home/alec/git/electroplating/frontend/src/components/ElectroplatingCalculator.tsx">
-        <metrics statements="50" coveredstatements="2" conditionals="40" coveredconditionals="0" methods="23" coveredmethods="0"/>
-        <line num="59" count="1" type="stmt"/>
-        <line num="67" count="1" type="stmt"/>
-        <line num="76" count="0" type="stmt"/>
-        <line num="77" count="0" type="stmt"/>
-        <line num="79" count="0" type="stmt"/>
-        <line num="88" count="0" type="stmt"/>
-        <line num="89" count="0" type="stmt"/>
+        <metrics statements="77" coveredstatements="3" conditionals="90" coveredconditionals="0" methods="25" coveredmethods="0"/>
+        <line num="71" count="1" type="stmt"/>
+        <line num="80" count="1" type="stmt"/>
+        <line num="85" count="1" type="stmt"/>
+        <line num="94" count="0" type="stmt"/>
         <line num="95" count="0" type="stmt"/>
         <line num="96" count="0" type="stmt"/>
-        <line num="97" count="0" type="stmt"/>
-        <line num="100" count="0" type="stmt"/>
-        <line num="108" count="0" type="stmt"/>
-        <line num="109" count="0" type="stmt"/>
+        <line num="98" count="0" type="stmt"/>
+        <line num="107" count="0" type="stmt"/>
+        <line num="109" count="0" type="cond" truecount="0" falsecount="4"/>
         <line num="110" count="0" type="stmt"/>
-        <line num="113" count="0" type="stmt"/>
-        <line num="114" count="0" type="stmt"/>
-        <line num="118" count="0" type="stmt"/>
-        <line num="119" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="114" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="122" count="0" type="stmt"/>
-        <line num="123" count="0" type="cond" truecount="0" falsecount="2"/>
         <line num="126" count="0" type="stmt"/>
-        <line num="127" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="128" count="0" type="stmt"/>
-        <line num="130" count="0" type="stmt"/>
+        <line num="127" count="0" type="stmt"/>
         <line num="131" count="0" type="stmt"/>
+        <line num="132" count="0" type="stmt"/>
         <line num="135" count="0" type="stmt"/>
-        <line num="136" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="137" count="0" type="stmt"/>
-        <line num="139" count="0" type="stmt"/>
-        <line num="140" count="0" type="stmt"/>
-        <line num="144" count="0" type="stmt"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="139" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="141" count="0" type="stmt"/>
         <line num="145" count="0" type="stmt"/>
-        <line num="148" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="146" count="0" type="stmt"/>
         <line num="149" count="0" type="stmt"/>
-        <line num="155" count="0" type="stmt"/>
-        <line num="156" count="0" type="stmt"/>
-        <line num="157" count="0" type="stmt"/>
-        <line num="158" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="159" count="0" type="stmt"/>
+        <line num="150" count="0" type="stmt"/>
+        <line num="151" count="0" type="stmt"/>
+        <line num="154" count="0" type="stmt"/>
+        <line num="160" count="0" type="stmt"/>
         <line num="161" count="0" type="stmt"/>
-        <line num="164" count="0" type="stmt"/>
-        <line num="176" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="253" count="0" type="stmt"/>
-        <line num="264" count="0" type="stmt"/>
-        <line num="275" count="0" type="stmt"/>
-        <line num="286" count="0" type="stmt"/>
-        <line num="297" count="0" type="stmt"/>
-        <line num="308" count="0" type="stmt"/>
-        <line num="331" count="0" type="stmt"/>
-        <line num="667" count="0" type="stmt"/>
+        <line num="165" count="0" type="stmt"/>
+        <line num="166" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="168" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="176" count="0" type="stmt"/>
+        <line num="181" count="0" type="stmt"/>
+        <line num="182" count="0" type="stmt"/>
+        <line num="186" count="0" type="stmt"/>
+        <line num="187" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="190" count="0" type="stmt"/>
+        <line num="191" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="194" count="0" type="stmt"/>
+        <line num="195" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="196" count="0" type="stmt"/>
+        <line num="198" count="0" type="stmt"/>
+        <line num="199" count="0" type="stmt"/>
+        <line num="203" count="0" type="stmt"/>
+        <line num="204" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="205" count="0" type="stmt"/>
+        <line num="207" count="0" type="stmt"/>
+        <line num="208" count="0" type="stmt"/>
+        <line num="212" count="0" type="stmt"/>
+        <line num="213" count="0" type="stmt"/>
+        <line num="216" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="218" count="0" type="stmt"/>
+        <line num="219" count="0" type="stmt"/>
+        <line num="222" count="0" type="stmt"/>
+        <line num="223" count="0" type="stmt"/>
+        <line num="227" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="228" count="0" type="stmt"/>
+        <line num="234" count="0" type="stmt"/>
+        <line num="235" count="0" type="stmt"/>
+        <line num="236" count="0" type="stmt"/>
+        <line num="237" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="238" count="0" type="stmt"/>
+        <line num="240" count="0" type="stmt"/>
+        <line num="243" count="0" type="stmt"/>
+        <line num="244" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="247" count="0" type="stmt"/>
+        <line num="248" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="251" count="0" type="stmt"/>
+        <line num="273" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="360" count="0" type="stmt"/>
+        <line num="374" count="0" type="stmt"/>
+        <line num="388" count="0" type="stmt"/>
+        <line num="406" count="0" type="stmt"/>
+        <line num="420" count="0" type="stmt"/>
+        <line num="434" count="0" type="stmt"/>
+        <line num="469" count="0" type="stmt"/>
+        <line num="846" count="0" type="stmt"/>
       </file>
       <file name="FileUpload.tsx" path="/home/alec/git/electroplating/frontend/src/components/FileUpload.tsx">
         <metrics statements="6" coveredstatements="4" conditionals="26" coveredconditionals="18" methods="2" coveredmethods="1"/>
