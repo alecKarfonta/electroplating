@@ -64,20 +64,20 @@ run_container() {
     print_status "Running STL Analysis API container..."
     docker run -d \
         --name stl-analysis-api \
-        -p 8000:8000 \
+        -p 8116:8116 \
         -v "$(pwd)/sessions:/app/sessions" \
         -v "$(pwd)/logs:/app/logs" \
         --restart unless-stopped \
         stl-analysis-api
-    print_success "Container started! API available at http://localhost:8000"
+    print_success "Container started! API available at http://localhost:8116"
 }
 
 # Function to start with docker-compose
 start_compose() {
     print_status "Starting STL Analysis API with docker-compose..."
     docker-compose up -d
-    print_success "API started! Available at http://localhost:8000"
-    print_status "API Documentation: http://localhost:8000/docs"
+    print_success "API started! Available at http://localhost:8116"
+    print_status "API Documentation: http://localhost:8116/docs"
 }
 
 # Function to start production setup
@@ -86,7 +86,7 @@ start_production() {
     docker-compose --profile production up -d
     print_success "Production setup started!"
     print_status "API available at http://localhost (via nginx)"
-    print_status "Direct API access: http://localhost:8000"
+    print_status "Direct API access: http://localhost:8116"
 }
 
 # Function to stop the API

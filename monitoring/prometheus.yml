@@ -15,7 +15,7 @@ scrape_configs:
   # STL Analysis Backend
   - job_name: 'stl-analysis-backend'
     static_configs:
-      - targets: ['backend:8000']
+      - targets: ['backend:8116']
     metrics_path: '/metrics'
     scrape_interval: 30s
     scrape_timeout: 10s

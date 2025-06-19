@@ -166,3 +166,4 @@ sessions/
 !package.json
 !package-lock.json
 !tsconfig.json
+frontend/node_modules/

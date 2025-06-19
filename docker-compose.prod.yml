@@ -21,7 +21,7 @@ services:
     image: ghcr.io/${GITHUB_REPOSITORY:-your-username/electroplating}/backend:latest
     container_name: stl-analysis-api
     ports:
-      - "8000:8000"
+      - "8116:8116"
     volumes:
       # Mount sessions directory for persistent file storage
       - ./sessions:/app/sessions
@@ -41,7 +41,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8116/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -58,7 +58,7 @@ services:
       - backend
     restart: unless-stopped
     environment:
-      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_API_URL=http://localhost:8116
     networks:
       - stl-network
 

@@ -19,9 +19,13 @@ from typing import Dict, Any
 from datetime import datetime
 import logging
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 import uvicorn
 
 from .core import (
@@ -56,7 +60,7 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3017", "http://localhost:3000"],  # Configure for production
+    allow_origins=os.getenv('ALLOWED_ORIGINS', 'http://localhost:3017,http://localhost:3000').split(','),
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
@@ -473,6 +477,32 @@ async def get_convex_hull_volume(session_id: str, stl_tools: STLTools = Depends(
         raise HTTPException(status_code=500, detail=f"Error calculating convex hull volume: {str(e)}")
 
 
+@app.get("/sessions/{session_id}/stl")
+async def get_stl_data(session_id: str, stl_tools: STLTools = Depends(get_stl_tools)):
+    """Get the STL file data for 3D visualization."""
+    logger.info(f"Getting STL data", session_id=session_id)
+    try:
+        with PerformanceLogger(logger, "STL data retrieval"):
+            # Get the session to access the original file path
+            session = session_manager.get_session(session_id)
+            if not session:
+                raise HTTPException(status_code=404, detail="Session not found")
+            
+            # Read the original STL file
+            with open(session['file_path'], 'rb') as f:
+                stl_data = f.read()
+            
+            # Return the STL data as binary
+            return Response(
+                content=stl_data,
+                media_type="application/octet-stream",
+                headers={"Content-Disposition": f"attachment; filename={session['filename']}"}
+            )
+    except Exception as e:
+        logger.error(f"Error getting STL data", session_id=session_id, error=str(e))
+        raise HTTPException(status_code=500, detail=f"Error getting STL data: {str(e)}")
+
+
 @app.get("/stats", response_model=Dict[str, Any])
 async def get_api_stats():
     """Get API statistics."""
@@ -510,7 +540,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "api.main:app",
         host="0.0.0.0",
-        port=8000,
+        port=8116,
         reload=True,
         log_level="info"
     ) 

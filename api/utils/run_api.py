@@ -38,8 +38,8 @@ Examples:
     parser.add_argument(
         "--port",
         type=int,
-        default=8000,
-        help="Port to bind to (default: 8000)"
+        default=8116,
+        help="Port to bind to (default: 8116)"
     )
     
     parser.add_argument(

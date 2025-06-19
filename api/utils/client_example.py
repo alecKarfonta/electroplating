@@ -29,7 +29,7 @@ class STLAPIClient:
     - Exporting results
     """
     
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str = "http://localhost:8116"):
         """
         Initialize the API client.
         
@@ -160,7 +160,7 @@ def example_usage():
     """Example usage of the STL API client."""
     
     # Initialize client
-    client = STLAPIClient("http://localhost:8000")
+    client = STLAPIClient("http://localhost:8116")
     
     try:
         print("=== STL API Client Example ===\n")
@@ -279,7 +279,7 @@ def example_usage():
         print("\n=== Example completed successfully! ===")
         
     except requests.exceptions.ConnectionError:
-        print("✗ Could not connect to the API. Make sure it's running on http://localhost:8000")
+        print("✗ Could not connect to the API. Make sure it's running on http://localhost:8116")
     except Exception as e:
         print(f"✗ Error during example: {e}")
 
@@ -287,7 +287,7 @@ def example_usage():
 def advanced_usage_example():
     """Advanced usage example with mesh manipulation."""
     
-    client = STLAPIClient("http://localhost:8000")
+    client = STLAPIClient("http://localhost:8116")
     
     try:
         print("=== Advanced Usage Example ===\n")

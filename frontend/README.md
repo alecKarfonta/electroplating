@@ -70,7 +70,7 @@ docker-compose up frontend
 Create a `.env` file in the frontend directory:
 
 ```env
-REACT_APP_API_URL=http://localhost:8000
+REACT_APP_API_URL=http://localhost:8116
 ```
 
 ## API Integration

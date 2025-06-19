@@ -83,14 +83,14 @@ Core STL file processing and analysis:
 ### Running the API
 ```bash
 # Using uvicorn directly
-uvicorn api.main:app --host 0.0.0.0 --port 8000
+uvicorn api.main:app --host 0.0.0.0 --port 8116
 
 # Using the utility script
 python -m api.utils.run_api
 
 # Using Docker
 docker build -t stl-api .
-docker run -p 8000:8000 stl-api
+docker run -p 8116:8116 stl-api
 ```
 
 ### Client Example

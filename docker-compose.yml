@@ -5,7 +5,7 @@ services:
     build: .
     container_name: stl-analysis-api
     ports:
-      - "8000:8000"
+      - "8116:8116"
     volumes:
       # Mount sessions directory for persistent file storage
       - ./sessions:/app/sessions
@@ -14,9 +14,10 @@ services:
     environment:
       - PYTHONPATH=/app
       - PYTHONUNBUFFERED=1
+      - ALLOWED_ORIGINS=http://localhost:3017,http://localhost:3000,http://192.168.1.196:3017,https://mlapi.us
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8116/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -35,7 +36,7 @@ services:
     networks:
       - stl-network
     environment:
-      - REACT_APP_API_URL=http://backend:8000
+      - REACT_APP_API_URL=/api
 
   # Optional: Add a reverse proxy with nginx for production
   nginx:

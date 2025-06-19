@@ -36,7 +36,7 @@ if [ ! -d "node_modules" ]; then
 fi
 
 # Set environment variables for development
-export REACT_APP_API_URL=http://localhost:8000
+export REACT_APP_API_URL=http://localhost:8116
 
 echo "🌐 API URL set to: $REACT_APP_API_URL"
 echo "📱 Frontend will be available at: http://localhost:3000"

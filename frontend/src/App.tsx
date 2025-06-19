@@ -11,11 +11,21 @@ import {
   Snackbar,
   CircularProgress,
   Paper,
-  Tabs,
-  Tab,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   Backdrop,
 } from '@mui/material';
-import { ThreeDRotation, Science, CloudUpload, Analytics, Calculate, ElectricBolt, AspectRatio } from '@mui/icons-material';
+import { 
+  ThreeDRotation, 
+  Science, 
+  CloudUpload, 
+  Analytics, 
+  Calculate, 
+  ElectricBolt, 
+  AspectRatio,
+  ExpandMore 
+} from '@mui/icons-material';
 
 import FileUpload from './components/FileUpload';
 import STLViewer from './components/STLViewer';
@@ -46,28 +56,6 @@ import {
   ElectroplatingRecommendations,
   ScaleRequest,
 } from './types/api';
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
-}
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
@@ -127,7 +115,6 @@ function App() {
   const [recommendations, setRecommendations] = useState<ElectroplatingRecommendations | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [tabValue, setTabValue] = useState(0);
   const [currentScale, setCurrentScale] = useState<number>(1.0);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -241,7 +228,7 @@ function App() {
     try {
       const response = await getElectroplatingRecommendations(sessionId, recommendationRequest);
       setRecommendations(response);
-      setSuccessMessage(`${recommendationRequest.metal_type.charAt(0).toUpperCase() + recommendationRequest.metal_type.slice(1)} recommendations loaded!`);
+      setSuccessMessage('Electroplating recommendations generated!');
     } catch (err: any) {
       const errorMessage = err.response?.data?.detail || err.message || 'Failed to get recommendations';
       setError(errorMessage);
@@ -263,7 +250,7 @@ function App() {
     try {
       await scaleMesh(sessionId, scaleRequest);
       
-      // Update current scale for display
+      // Update current scale - handle both number and array types
       if (Array.isArray(scaleRequest.scale_factor)) {
         setCurrentScale(scaleRequest.scale_factor[0]); // Use X scale as reference
       } else {
@@ -273,25 +260,19 @@ function App() {
       // Reload all analysis data with new scale
       await loadAnalysis(sessionId);
       
-      // Reload cost estimate if it exists
-      if (costEstimate) {
-        // You might want to store the last cost request to reload it
-        // For now, we'll just clear it and let user recalculate
-        setCostEstimate(null);
-      }
+      // Clear all estimates since they need to be recalculated
+      setCostEstimate(null);
+      setPlatingEstimate(null);
+      setRecommendations(null);
       
-      // Reload plating estimate if it exists
-      if (platingEstimate) {
-        // You might want to store the last plating request to reload it
-        // For now, we'll just clear it and let user recalculate
-        setPlatingEstimate(null);
-      }
-      
-      setSuccessMessage('Object scaled successfully! All calculations updated.');
+      const scaleDisplay = Array.isArray(scaleRequest.scale_factor) 
+        ? `${scaleRequest.scale_factor[0]}x` 
+        : `${scaleRequest.scale_factor}x`;
+      setSuccessMessage(`Object scaled by ${scaleDisplay} successfully!`);
     } catch (err: any) {
       const errorMessage = err.response?.data?.detail || err.message || 'Failed to scale object';
       setError(errorMessage);
-      console.error('Scaling error:', err);
+      console.error('Scale error:', err);
     } finally {
       setScalingLoading(false);
     }
@@ -343,10 +324,6 @@ function App() {
     setSuccessMessage(null);
   };
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
-
   return (
     <ErrorBoundary>
       <CssBaseline />
@@ -382,101 +359,120 @@ function App() {
           </Alert>
         )}
 
-        {/* File Upload Section */}
-        {!currentFile && (
-          <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h5" gutterBottom>
-              <CloudUpload sx={{ mr: 1, verticalAlign: 'middle' }} />
-              Upload STL File
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-              Upload a 3D model file to analyze its properties and calculate electroplating parameters.
-            </Typography>
-            <FileUpload onFileSelect={handleFileSelect} loading={uploadLoading} />
-          </Paper>
+        {/* File Upload Section - Always at the top */}
+        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h5" gutterBottom>
+            <CloudUpload sx={{ mr: 1, verticalAlign: 'middle' }} />
+            Upload STL File
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            Upload a 3D model file to analyze its properties and calculate electroplating parameters.
+          </Typography>
+          <FileUpload onFileSelect={handleFileSelect} loading={uploadLoading} />
+        </Paper>
+
+        {/* 3D Viewer and Scaling Controls - Always visible when file is uploaded */}
+        {currentFile && (
+          <Grid container spacing={3} sx={{ mb: 3 }}>
+            {/* 3D Viewer - Takes up most of the space */}
+            <Grid item xs={12} md={8}>
+              <Paper elevation={3} sx={{ p: 2, height: '600px' }}>
+                <Typography variant="h6" gutterBottom>
+                  <ThreeDRotation sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  3D Model Viewer
+                </Typography>
+                <Box sx={{ height: 'calc(100% - 60px)' }}>
+                  <STLViewer 
+                    sessionId={sessionId}
+                    currentScale={currentScale}
+                  />
+                </Box>
+              </Paper>
+            </Grid>
+
+            {/* Scaling Controls - Next to 3D viewer */}
+            <Grid item xs={12} md={4}>
+              <Paper elevation={3} sx={{ p: 2, height: '600px' }}>
+                <Typography variant="h6" gutterBottom>
+                  <AspectRatio sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  Scale & Transform
+                </Typography>
+                <Box sx={{ height: 'calc(100% - 60px)', overflowY: 'auto' }}>
+                  <ScaleControls 
+                    onScale={handleScale}
+                    onReset={handleReset}
+                    loading={scalingLoading}
+                    currentScale={currentScale}
+                  />
+                </Box>
+              </Paper>
+            </Grid>
+          </Grid>
         )}
 
-        {/* Main Application Tabs */}
+        {/* Analysis, Cost Calculator, and Electroplating in Accordion */}
         {currentFile && (
-          <>
-            <Paper elevation={3} sx={{ mb: 3 }}>
-              <Tabs value={tabValue} onChange={handleTabChange} aria-label="application tabs">
-                <Tab 
-                  icon={<Analytics />} 
-                  label="Analysis" 
-                  iconPosition="start"
-                  sx={{ minHeight: 64 }}
+          <Paper elevation={3}>
+            {/* Analysis Accordion */}
+            <Accordion defaultExpanded>
+              <AccordionSummary
+                expandIcon={<ExpandMore />}
+                aria-controls="analysis-content"
+                id="analysis-header"
+              >
+                <Analytics sx={{ mr: 2 }} />
+                <Typography variant="h6">Analysis</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <MeshStats 
+                  statistics={statistics}
+                  validation={validation}
+                  loading={analysisLoading}
+                  onRefresh={handleRefreshData}
                 />
-                <Tab 
-                  icon={<ThreeDRotation />} 
-                  label="3D Viewer" 
-                  iconPosition="start"
-                  sx={{ minHeight: 64 }}
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Cost Calculator Accordion */}
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<ExpandMore />}
+                aria-controls="cost-content"
+                id="cost-header"
+              >
+                <Calculate sx={{ mr: 2 }} />
+                <Typography variant="h6">Cost Calculator</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <CostCalculator 
+                  onCalculate={handleCostCalculation}
+                  costEstimate={costEstimate}
+                  loading={costLoading}
                 />
-                <Tab 
-                  icon={<Calculate />} 
-                  label="Cost Calculator" 
-                  iconPosition="start"
-                  sx={{ minHeight: 64 }}
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Electroplating Accordion */}
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<ExpandMore />}
+                aria-controls="electroplating-content"
+                id="electroplating-header"
+              >
+                <ElectricBolt sx={{ mr: 2 }} />
+                <Typography variant="h6">Electroplating</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <ElectroplatingCalculator 
+                  onCalculate={handleElectroplatingCalculation}
+                  onGetRecommendations={handleGetRecommendations}
+                  platingEstimate={platingEstimate}
+                  recommendations={recommendations}
+                  loading={platingLoading}
                 />
-                <Tab 
-                  icon={<ElectricBolt />} 
-                  label="Electroplating" 
-                  iconPosition="start"
-                  sx={{ minHeight: 64 }}
-                />
-                <Tab 
-                  icon={<AspectRatio />} 
-                  label="Scale & Transform" 
-                  iconPosition="start"
-                  sx={{ minHeight: 64 }}
-                />
-              </Tabs>
-            </Paper>
-
-            <TabPanel value={tabValue} index={0}>
-              <MeshStats 
-                statistics={statistics}
-                validation={validation}
-                loading={analysisLoading}
-                onRefresh={handleRefreshData}
-              />
-            </TabPanel>
-
-            <TabPanel value={tabValue} index={1}>
-              <STLViewer 
-                sessionId={sessionId}
-                currentScale={currentScale}
-              />
-            </TabPanel>
-
-            <TabPanel value={tabValue} index={2}>
-              <CostCalculator 
-                onCalculate={handleCostCalculation}
-                costEstimate={costEstimate}
-                loading={costLoading}
-              />
-            </TabPanel>
-
-            <TabPanel value={tabValue} index={3}>
-              <ElectroplatingCalculator 
-                onCalculate={handleElectroplatingCalculation}
-                onGetRecommendations={handleGetRecommendations}
-                platingEstimate={platingEstimate}
-                recommendations={recommendations}
-                loading={platingLoading}
-              />
-            </TabPanel>
-
-            <TabPanel value={tabValue} index={4}>
-              <ScaleControls 
-                onScale={handleScale}
-                onReset={handleReset}
-                loading={scalingLoading}
-                currentScale={currentScale}
-              />
-            </TabPanel>
-          </>
+              </AccordionDetails>
+            </Accordion>
+          </Paper>
         )}
       </Container>
 

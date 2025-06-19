@@ -144,7 +144,7 @@ with PerformanceLogger(logger, "mesh analysis"):
 ```bash
 # API Configuration
 API_HOST=0.0.0.0
-API_PORT=8000
+API_PORT=8116
 LOG_LEVEL=INFO
 LOG_FILE=./logs/api.log
 

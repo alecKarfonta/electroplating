@@ -61,7 +61,7 @@ start_backend() {
     pip install -r requirements.txt
     
     # Start the API server
-    print_status "Starting API server on http://localhost:8000"
+    print_status "Starting API server on http://localhost:8116"
     python -m api.main &
     BACKEND_PID=$!
     
@@ -69,8 +69,8 @@ start_backend() {
     sleep 3
     
     # Check if backend is running
-    if curl -s http://localhost:8000/ > /dev/null; then
-        print_success "Backend API is running on http://localhost:8000"
+    if curl -s http://localhost:8116/ > /dev/null; then
+        print_success "Backend API is running on http://localhost:8116"
     else
         print_error "Failed to start backend API"
         exit 1
@@ -90,7 +90,7 @@ start_frontend() {
     fi
     
     # Set environment variable
-    export REACT_APP_API_URL=http://localhost:8000
+    export REACT_APP_API_URL=http://localhost:8116
     
     print_status "Starting frontend on http://localhost:3000"
     npm start &
@@ -122,7 +122,7 @@ trap cleanup SIGINT SIGTERM
 # Check command line arguments
 if [ "$1" = "docker" ]; then
     print_status "Starting with Docker Compose..."
-    docker compose up
+    docker compose up --build -d
 elif [ "$1" = "backend-only" ]; then
     print_status "Starting backend only..."
     start_backend
@@ -141,9 +141,9 @@ else
     start_frontend
     
     print_success "Full stack application started!"
-    print_status "Backend API: http://localhost:8000"
+    print_status "Backend API: http://localhost:8116"
     print_status "Frontend: http://localhost:3000"
-    print_status "API Documentation: http://localhost:8000/docs"
+    print_status "API Documentation: http://localhost:8116/docs"
     print_warning "Press Ctrl+C to stop all services"
     
     # Wait for both processes

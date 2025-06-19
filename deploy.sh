@@ -141,7 +141,7 @@ wait_for_health() {
     # Wait for Backend
     timeout=120
     while [ $timeout -gt 0 ]; do
-        if curl -f http://localhost:8000/health > /dev/null 2>&1; then
+        if curl -f http://localhost:8116/health > /dev/null 2>&1; then
             print_success "Backend is healthy"
             break
         fi
