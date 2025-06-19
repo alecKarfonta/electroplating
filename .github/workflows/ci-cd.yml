@@ -143,20 +143,31 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     
-    - name: Extract metadata
-      id: meta
+    - name: Convert repository name to lowercase
+      id: repo_name
+      run: echo "repo_lowercase=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+    - name: Extract backend metadata
+      id: backend_meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}
+        images: ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/backend
         tags: |
           type=ref,event=branch
           type=ref,event=pr
           type=sha,prefix={{branch}}-
           type=raw,value=latest,enable={{is_default_branch}}
-    
-    - name: Convert repository name to lowercase
-      id: repo_name
-      run: echo "repo_lowercase=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+    - name: Extract frontend metadata
+      id: frontend_meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/frontend
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Build and push backend image
       uses: docker/build-push-action@v5
@@ -164,8 +175,8 @@ jobs:
         context: .
         file: ./Dockerfile
         push: true
-        tags: ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/backend:${{ github.sha }}
-        labels: ${{ steps.meta.outputs.labels }}
+        tags: ${{ steps.backend_meta.outputs.tags }}
+        labels: ${{ steps.backend_meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
     
@@ -175,17 +186,10 @@ jobs:
         context: ./frontend
         file: ./frontend/Dockerfile
         push: true
-        tags: ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/frontend:${{ github.sha }}
-        labels: ${{ steps.meta.outputs.labels }}
+        tags: ${{ steps.frontend_meta.outputs.tags }}
+        labels: ${{ steps.frontend_meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
-    
-    - name: Tag latest images
-      run: |
-        docker tag ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/backend:${{ github.sha }} ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/backend:latest
-        docker tag ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/frontend:${{ github.sha }} ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/frontend:latest
-        docker push ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/backend:latest
-        docker push ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/frontend:latest
 
   deploy:
     name: Deploy to Production
