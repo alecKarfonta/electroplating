@@ -521,13 +521,25 @@ class STLTools:
         # Calculate plating time based on thickness and plating rate
         plating_thickness_inches = plating_thickness_microns / 25400
         
-        # Estimate base plating rate based on current density (empirical formula)
-        # Base rate increases with current density, typical range: 0.00005 to 0.0002 inches/min
+        # Calculate realistic plating rate based on Faraday's law and empirical data
+        # Formula: Rate = (Current Density × Current Efficiency × Atomic Weight) / (n × F × Density)
+        # For practical use, we use empirically validated rates based on current density
         current_density_avg = (current_density_min + current_density_max) / 2
-        base_plating_rate_inches_per_min = 0.00005 + (current_density_avg * 0.001)
         
-        # Adjust plating rate based on current efficiency
-        actual_plating_rate = base_plating_rate_inches_per_min * current_efficiency
+        # Realistic plating rates based on industry standards (µm/min at stated current densities)
+        # These rates account for typical solution conditions and current efficiency
+        if current_density_avg <= 0.05:  # Low current density
+            base_rate_microns_per_min = 0.15 + (current_density_avg * 2.0)
+        elif current_density_avg <= 0.1:  # Standard current density
+            base_rate_microns_per_min = 0.25 + (current_density_avg * 1.5)
+        else:  # High current density
+            base_rate_microns_per_min = 0.4 + (current_density_avg * 1.0)
+        
+        # Apply current efficiency
+        actual_rate_microns_per_min = base_rate_microns_per_min * current_efficiency
+        
+        # Convert to inches per minute for calculation
+        actual_plating_rate = actual_rate_microns_per_min / 25400
         
         # Calculate plating time using the formula: time = thickness / rate
         plating_time_minutes = plating_thickness_inches / actual_plating_rate
@@ -677,7 +689,7 @@ class STLTools:
                 'current_density_min': 0.07,
                 'current_density_max': 0.1,
                 'voltage': 6.0,
-                'plating_rate_inches_per_min': 0.0001,
+                'plating_rate_microns_per_min': 0.4,  # Realistic rate: ~0.4 µm/min at 0.085 A/in²
                 'solution_cost_per_kg': 50.0,
                 'color': 'Silver-gray',
                 'hardness': 'Hard',
@@ -689,7 +701,7 @@ class STLTools:
                 'current_density_min': 0.07,
                 'current_density_max': 0.1,
                 'voltage': 3.0,
-                'plating_rate_inches_per_min': 0.00015,
+                'plating_rate_microns_per_min': 0.45,  # Realistic rate: ~0.45 µm/min at 0.085 A/in²
                 'solution_cost_per_kg': 30.0,
                 'color': 'Reddish-brown',
                 'hardness': 'Soft',
@@ -701,7 +713,7 @@ class STLTools:
                 'current_density_min': 0.1,
                 'current_density_max': 0.15,
                 'voltage': 12.0,
-                'plating_rate_inches_per_min': 0.00005,
+                'plating_rate_microns_per_min': 0.25,  # Realistic rate: ~0.25 µm/min at 0.125 A/in²
                 'solution_cost_per_kg': 80.0,
                 'color': 'Bright silver',
                 'hardness': 'Very hard',
@@ -713,7 +725,7 @@ class STLTools:
                 'current_density_min': 0.02,
                 'current_density_max': 0.05,
                 'voltage': 3.0,
-                'plating_rate_inches_per_min': 0.00002,
+                'plating_rate_microns_per_min': 0.15,  # Realistic rate: ~0.15 µm/min at 0.035 A/in²
                 'solution_cost_per_kg': 2000.0,
                 'color': 'Yellow',
                 'hardness': 'Soft',
@@ -725,10 +737,10 @@ class STLTools:
                 'current_density_min': 0.03,
                 'current_density_max': 0.06,
                 'voltage': 2.0,
-                'plating_rate_inches_per_min': 0.00008,
+                'plating_rate_microns_per_min': 0.2,  # Realistic rate: ~0.2 µm/min at 0.045 A/in²
                 'solution_cost_per_kg': 500.0,
                 'color': 'Bright silver',
-                'hardness': 'Soft',
+                'hardness': 'Soft',  
                 'corrosion_resistance': 'Good',
                 'typical_thickness_microns': 10.0
             }

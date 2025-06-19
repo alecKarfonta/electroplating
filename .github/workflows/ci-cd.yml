@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/${{ github.event.repository.name }}
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   test:
@@ -147,20 +147,24 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        images: ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}
         tags: |
           type=ref,event=branch
           type=ref,event=pr
           type=sha,prefix={{branch}}-
           type=raw,value=latest,enable={{is_default_branch}}
     
+    - name: Convert repository name to lowercase
+      id: repo_name
+      run: echo "repo_lowercase=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
     - name: Build and push backend image
       uses: docker/build-push-action@v5
       with:
         context: .
         file: ./Dockerfile
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}
+        tags: ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/backend:${{ github.sha }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
@@ -171,17 +175,17 @@ jobs:
         context: ./frontend
         file: ./frontend/Dockerfile
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
+        tags: ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/frontend:${{ github.sha }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
     
     - name: Tag latest images
       run: |
-        docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
-        docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
-        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
-        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+        docker tag ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/backend:${{ github.sha }} ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/backend:latest
+        docker tag ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/frontend:${{ github.sha }} ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/frontend:latest
+        docker push ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/backend:latest
+        docker push ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/frontend:latest
 
   deploy:
     name: Deploy to Production
@@ -240,20 +244,20 @@ jobs:
           
           ### Backend
           ```bash
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}
+          docker pull ${{ env.REGISTRY }}/$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')/backend:${{ github.sha }}
           ```
           
           ### Frontend
           ```bash
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
+          docker pull ${{ env.REGISTRY }}/$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')/frontend:${{ github.sha }}
           ```
           
           ## Installation
           
           ```bash
           # Pull the latest images
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+          docker pull ${{ env.REGISTRY }}/$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')/backend:latest
+          docker pull ${{ env.REGISTRY }}/$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')/frontend:latest
           
           # Run with docker-compose
           docker-compose up -d
