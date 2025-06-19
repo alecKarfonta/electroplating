@@ -453,9 +453,8 @@ function App() {
             <TabPanel value={tabValue} index={2}>
               <CostCalculator 
                 onCalculate={handleCostCalculation}
-                estimate={costEstimate}
+                costEstimate={costEstimate}
                 loading={costLoading}
-                statistics={statistics}
               />
             </TabPanel>
 
@@ -463,10 +462,9 @@ function App() {
               <ElectroplatingCalculator 
                 onCalculate={handleElectroplatingCalculation}
                 onGetRecommendations={handleGetRecommendations}
-                estimate={platingEstimate}
+                platingEstimate={platingEstimate}
                 recommendations={recommendations}
                 loading={platingLoading}
-                statistics={statistics}
               />
             </TabPanel>
 

@@ -9,6 +9,7 @@ import {
   Chip,
   Divider,
   Alert,
+  Button,
 } from '@mui/material';
 import {
   Info,
@@ -18,6 +19,7 @@ import {
   TrendingUp,
   Straighten,
   AspectRatio,
+  Refresh,
 } from '@mui/icons-material';
 import { MeshStatistics, ValidationResult, ResinCostEstimate } from '../types/api';
 
@@ -27,6 +29,7 @@ interface MeshStatsProps {
   costEstimate?: ResinCostEstimate;
   loading?: boolean;
   error?: string | null;
+  onRefresh?: () => Promise<void>;
 }
 
 const MeshStats: React.FC<MeshStatsProps> = ({
@@ -35,6 +38,7 @@ const MeshStats: React.FC<MeshStatsProps> = ({
   costEstimate,
   loading = false,
   error = null,
+  onRefresh,
 }) => {
   if (loading) {
     return (
@@ -83,10 +87,23 @@ const MeshStats: React.FC<MeshStatsProps> = ({
     <Box>
       {/* Basic Statistics */}
       <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          <Info sx={{ mr: 1, verticalAlign: 'middle' }} />
-          Basic Statistics
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6">
+            <Info sx={{ mr: 1, verticalAlign: 'middle' }} />
+            Basic Statistics
+          </Typography>
+          {onRefresh && (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={onRefresh}
+              disabled={loading}
+              startIcon={<Refresh />}
+            >
+              Refresh
+            </Button>
+          )}
+        </Box>
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={3}>
             <Card>

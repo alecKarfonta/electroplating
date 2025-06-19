@@ -244,15 +244,15 @@ class STLTools:
                 'std': np.std(edges)
             },
             'aspect_ratio': self._calculate_aspect_ratio(bounds['dimensions']),
-            'surface_area_to_volume_ratio': surface_area / volume if volume > 0 else float('inf')
+            'surface_area_to_volume_ratio': surface_area / volume if volume > 0 else None
         }
         
         return stats
     
-    def _calculate_aspect_ratio(self, dimensions: np.ndarray) -> float:
+    def _calculate_aspect_ratio(self, dimensions: np.ndarray) -> Optional[float]:
         """Calculate the aspect ratio of the bounding box."""
         sorted_dims = np.sort(dimensions)
-        return sorted_dims[2] / sorted_dims[0] if sorted_dims[0] > 0 else float('inf')
+        return sorted_dims[2] / sorted_dims[0] if sorted_dims[0] > 0 else None
     
     def validate_mesh(self) -> Dict[str, Union[bool, List, str]]:
         """
@@ -641,6 +641,10 @@ class STLTools:
         bounds = self.get_bounding_box()
         aspect_ratio = self._calculate_aspect_ratio(bounds['dimensions'])
         sa_v_ratio = self.calculate_surface_area() / self.calculate_volume() if self.calculate_volume() > 0 else 0
+        
+        # Handle case where aspect_ratio is None (division by zero case)
+        if aspect_ratio is None:
+            aspect_ratio = 1.0  # Default to 1.0 for very thin objects
         
         # Complex shapes (high aspect ratio, high SA/V ratio) have lower coverage efficiency
         aspect_factor = min(aspect_ratio / 10.0, 1.0)  # Normalize aspect ratio

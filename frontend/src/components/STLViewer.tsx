@@ -2,16 +2,17 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { Box, Paper, Typography } from '@mui/material';
+import { Box, Paper, Typography, CircularProgress } from '@mui/material';
+import { getSTLData } from '../services/api';
 
 interface STLViewerProps {
-  file: File | null;
+  sessionId: string | null;
+  currentScale: number;
   width?: number;
   height?: number;
-  scale?: number | number[];
 }
 
-const STLViewer: React.FC<STLViewerProps> = ({ file, width = 600, height = 400, scale = 1.0 }) => {
+const STLViewer: React.FC<STLViewerProps> = ({ sessionId, currentScale, width = 600, height = 400 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -86,7 +87,7 @@ const STLViewer: React.FC<STLViewerProps> = ({ file, width = 600, height = 400, 
   }, [width, height]);
 
   useEffect(() => {
-    if (!file || !sceneRef.current) return;
+    if (!sessionId || !sceneRef.current) return;
 
     setLoading(true);
     setError(null);
@@ -97,12 +98,12 @@ const STLViewer: React.FC<STLViewerProps> = ({ file, width = 600, height = 400, 
       sceneRef.current.remove(existingMesh);
     }
 
-    const loader = new STLLoader();
-    const reader = new FileReader();
-
-    reader.onload = (event) => {
+    const loadSTLData = async () => {
       try {
-        const geometry = loader.parse(event.target?.result as ArrayBuffer);
+        const stlData = await getSTLData(sessionId);
+        
+        const loader = new STLLoader();
+        const geometry = loader.parse(stlData);
         
         // Center the geometry
         geometry.computeBoundingBox();
@@ -118,11 +119,7 @@ const STLViewer: React.FC<STLViewerProps> = ({ file, width = 600, height = 400, 
         geometry.scale(fitScale, fitScale, fitScale);
 
         // Apply user-defined scale
-        if (Array.isArray(scale)) {
-          geometry.scale(scale[0], scale[1], scale[2]);
-        } else {
-          geometry.scale(scale, scale, scale);
-        }
+        geometry.scale(currentScale, currentScale, currentScale);
 
         // Create material
         const material = new THREE.MeshPhongMaterial({
@@ -150,18 +147,14 @@ const STLViewer: React.FC<STLViewerProps> = ({ file, width = 600, height = 400, 
 
         setLoading(false);
       } catch (err) {
-        setError('Failed to load STL file');
+        setError('Failed to load STL data');
         setLoading(false);
+        console.error('STL loading error:', err);
       }
     };
 
-    reader.onerror = () => {
-      setError('Failed to read file');
-      setLoading(false);
-    };
-
-    reader.readAsArrayBuffer(file);
-  }, [file, scale]);
+    loadSTLData();
+  }, [sessionId, currentScale]);
 
   return (
     <Paper elevation={3} sx={{ p: 2, textAlign: 'center' }}>
@@ -188,7 +181,8 @@ const STLViewer: React.FC<STLViewerProps> = ({ file, width = 600, height = 400, 
               zIndex: 1,
             }}
           >
-            <Typography>Loading...</Typography>
+            <CircularProgress />
+            <Typography sx={{ mt: 1 }}>Loading...</Typography>
           </Box>
         )}
         {error && (

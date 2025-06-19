@@ -78,8 +78,8 @@ class MeshStatistics(BaseModel):
     bounding_box: Dict[str, List[float]]
     triangle_areas: Dict[str, float]
     edge_lengths: Dict[str, float]
-    aspect_ratio: float
-    surface_area_to_volume_ratio: float
+    aspect_ratio: Optional[float]
+    surface_area_to_volume_ratio: Optional[float]
 
 
 class ValidationResult(BaseModel):

@@ -64,6 +64,13 @@ export const getMeshStatistics = async (sessionId: string): Promise<MeshStatisti
   return response.data;
 };
 
+export const getSTLData = async (sessionId: string): Promise<ArrayBuffer> => {
+  const response = await api.get(`/sessions/${sessionId}/stl`, {
+    responseType: 'arraybuffer',
+  });
+  return response.data;
+};
+
 export const validateMesh = async (sessionId: string): Promise<ValidationResult> => {
   const response = await api.get<ValidationResult>(`/sessions/${sessionId}/validation`);
   return response.data;
