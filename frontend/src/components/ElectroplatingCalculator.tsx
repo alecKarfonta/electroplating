@@ -398,7 +398,6 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
         <CardContent sx={{ py: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mr: 1 }}>
-              {getMetalIcon(selectedMetal, 'large')}
               <Science sx={{ fontSize: '1.5rem', color: '#8b5cf6' }} />
             </Box>
             <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b' }}>
@@ -691,27 +690,7 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
                 }}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <Alert 
-                severity="info" 
-                sx={{ 
-                  height: 56,
-                  display: 'flex',
-                  alignItems: 'center',
-                  backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                  border: '1px solid rgba(99, 102, 241, 0.3)',
-                  borderRadius: 1,
-                  '& .MuiAlert-icon': {
-                    color: '#6366f1'
-                  }
-                }}
-                icon={<AutoAwesome />}
-              >
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                  Results auto-calculate as you type
-                </Typography>
-              </Alert>
-            </Grid>
+
           </Grid>
         </AccordionDetails>
       </Accordion>

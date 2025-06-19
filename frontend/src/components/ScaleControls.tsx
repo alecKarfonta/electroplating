@@ -242,7 +242,7 @@ const ScaleControls: React.FC<ScaleControlsProps> = ({
       <Divider sx={{ my: 2 }} />
 
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={6} md={4}>
           <Button
             variant="contained"
             fullWidth
@@ -254,7 +254,7 @@ const ScaleControls: React.FC<ScaleControlsProps> = ({
             {loading ? 'Scaling...' : 'Apply Scale'}
           </Button>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={6} md={4}>
           <Button
             variant="outlined"
             fullWidth
@@ -265,7 +265,7 @@ const ScaleControls: React.FC<ScaleControlsProps> = ({
             Reset
           </Button>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12} sm={12} md={4}>
           <Button
             variant="outlined"
             fullWidth
@@ -277,13 +277,6 @@ const ScaleControls: React.FC<ScaleControlsProps> = ({
           </Button>
         </Grid>
       </Grid>
-
-      <Box sx={{ mt: 2 }}>
-        <Typography variant="body2" color="text.secondary">
-          <strong>Note:</strong> Scaling will update all calculations including surface area, volume, 
-          cost estimates, and electroplating parameters. The 3D viewer will also reflect the new scale.
-        </Typography>
-      </Box>
     </Paper>
   );
 };

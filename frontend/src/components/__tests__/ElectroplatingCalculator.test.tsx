@@ -238,8 +238,8 @@ describe('ElectroplatingCalculator', () => {
     const metalSelect = screen.getByRole('combobox');
     await user.click(metalSelect);
     
-    // Select nickel
-    const nickelOption = screen.getByRole('option', { name: 'Nickel' });
+    // Select nickel - the option has more detailed text
+    const nickelOption = screen.getByRole('option', { name: /Nickel Corrosion resistant/ });
     await user.click(nickelOption);
     
     // Should update density to nickel's default (8.9)
@@ -252,14 +252,28 @@ describe('ElectroplatingCalculator', () => {
     expect(mockOnCalculate).toHaveBeenCalled();
   });
 
-  it('triggers recommendations when button is clicked', async () => {
+  it('triggers recommendations automatically when metal changes', async () => {
     const user = userEvent.setup();
     render(<ElectroplatingCalculator {...defaultProps} />);
     
-    const recommendButton = screen.getByRole('button', { name: /Get Copper Recommendations/i });
-    await user.click(recommendButton);
+    // Component should auto-trigger recommendations on mount with default copper
+    await waitFor(() => {
+      expect(mockOnGetRecommendations).toHaveBeenCalledWith({ metal_type: 'copper' });
+    });
     
-    expect(mockOnGetRecommendations).toHaveBeenCalledWith({ metal_type: 'copper' });
+    // Clear the mock to test changing metal
+    mockOnGetRecommendations.mockClear();
+    
+    // Change metal selection
+    const metalSelect = screen.getByRole('combobox');
+    await user.click(metalSelect);
+    const nickelOption = screen.getByRole('option', { name: /Nickel Corrosion resistant/ });
+    await user.click(nickelOption);
+    
+    // Should trigger recommendations for nickel
+    await waitFor(() => {
+      expect(mockOnGetRecommendations).toHaveBeenCalledWith({ metal_type: 'nickel' });
+    });
   });
 
   it('displays error message when error prop is provided', () => {
@@ -287,11 +301,12 @@ describe('ElectroplatingCalculator', () => {
   it('displays recommendations when provided', () => {
     render(<ElectroplatingCalculator {...defaultProps} recommendations={mockRecommendations} />);
     
-    expect(screen.getByText('reddish-brown Copper Specifications')).toBeInTheDocument();
-    expect(screen.getByText('Metal Properties')).toBeInTheDocument();
+    // Check for the actual text displayed in the component
+    expect(screen.getByText('Appearance')).toBeInTheDocument();
+    expect(screen.getAllByText('reddish-brown')).toHaveLength(2); // Appears in both chip and property card
+    expect(screen.getByText('Copper Plating Guide')).toBeInTheDocument();
+    expect(screen.getByText('Professional Tips for Copper Plating')).toBeInTheDocument();
     expect(screen.getByText('Ensure proper cleaning')).toBeInTheDocument(); // process note
-    // Metal specific tips should be present but checking for copper key
-    expect(screen.getByText('Metal-Specific Tips')).toBeInTheDocument();
   });
 
   it('does not auto-calculate without surface area statistics', () => {
@@ -341,7 +356,6 @@ describe('ElectroplatingCalculator', () => {
     expect(screen.getAllByText('Typical range: 0.05-0.15 A/in²')).toHaveLength(2); // Min and max current density
     expect(screen.getByText('Nickel: 8.9, Copper: 8.96, Gold: 19.32')).toBeInTheDocument();
     expect(screen.getByText('Typical range: 0.85-0.98')).toBeInTheDocument();
-    expect(screen.getByText('Results auto-calculate as you type')).toBeInTheDocument();
   });
 
   it('handles accordion expansion', async () => {
