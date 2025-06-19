@@ -180,13 +180,14 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
     );
   };
   const [selectedMetal, setSelectedMetal] = useState<'nickel' | 'copper' | 'chrome' | 'gold' | 'silver'>('copper');
-  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
-  const [thicknessInput, setThicknessInput] = useState<number>(defaultThickness.metric);
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>('imperial');
+  const [thicknessInput, setThicknessInput] = useState<number>(defaultThickness.imperial);
+  const [platingType, setPlatingType] = useState<'brush' | 'bath'>('bath');
   
   const [formData, setFormData] = useState<ElectroplatingRequest>({
     current_density_min: metalDefaults.copper.min,
     current_density_max: metalDefaults.copper.max,
-    plating_thickness_microns: defaultThickness.metric,
+    plating_thickness_microns: defaultThickness.imperial * 25.4, // Convert mils to microns for API
     metal_density_g_cm3: metalDefaults.copper.density,
     current_efficiency: 0.95,
     voltage: 3.0,
@@ -212,12 +213,16 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
   };
 
   const handleInputChange = (field: keyof ElectroplatingRequest, value: any) => {
+    // Only prevent NaN from being set when the value is actually NaN and not when input is being cleared/modified
     const newFormData = {
       ...formData,
       [field]: value,
     };
     setFormData(newFormData);
-    validateAndCalculate(newFormData);
+    // Only validate if value is not NaN
+    if (!isNaN(value) && value > 0) {
+      validateAndCalculate(newFormData);
+    }
   };
 
   const handleThicknessChange = (value: number) => {
@@ -231,7 +236,10 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
       plating_thickness_microns: microns,
     };
     setFormData(newFormData);
-    validateAndCalculate(newFormData);
+    // Only validate if value is not NaN
+    if (!isNaN(value) && value > 0) {
+      validateAndCalculate(newFormData);
+    }
   };
 
   const handleMetalChange = (metal: 'nickel' | 'copper' | 'chrome' | 'gold' | 'silver') => {
@@ -301,16 +309,38 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
   const handleUnitSystemChange = (newSystem: UnitSystem) => {
     setUnitSystem(newSystem);
     
-    // Convert thickness input to new unit system
+    // Convert thickness input to new unit system with proper rounding
     if (newSystem === 'imperial') {
-      // Convert microns to mils
-      const mils = thicknessInput * 0.0393701 / 1000;
-      setThicknessInput(mils);
+      // Convert microns to mils: 1 micron = 0.0393701 mils
+      const mils = thicknessInput * 0.0393701;
+      setThicknessInput(Math.round(mils * 100) / 100); // Round to 2 decimal places
     } else {
-      // Convert mils to microns
+      // Convert mils to microns: 1 mil = 25.4 microns
       const microns = thicknessInput * 25.4;
-      setThicknessInput(microns);
+      setThicknessInput(Math.round(microns)); // Round to whole numbers for microns
     }
+
+    // Convert current density values to new unit system with proper rounding
+    let newMinCurrentDensity = formData.current_density_min || 0;
+    let newMaxCurrentDensity = formData.current_density_max || 0;
+    
+    if (newSystem === 'metric') {
+      // Convert from A/in² to A/dm² (1 in² = 0.645 dm²)
+      newMinCurrentDensity = Math.round((formData.current_density_min || 0) / 0.645 * 1000) / 1000;
+      newMaxCurrentDensity = Math.round((formData.current_density_max || 0) / 0.645 * 1000) / 1000;
+    } else {
+      // Convert from A/dm² to A/in² (1 dm² = 1.55 in²)
+      newMinCurrentDensity = Math.round((formData.current_density_min || 0) * 0.645 * 1000) / 1000;
+      newMaxCurrentDensity = Math.round((formData.current_density_max || 0) * 0.645 * 1000) / 1000;
+    }
+
+    const newFormData = {
+      ...formData,
+      current_density_min: newMinCurrentDensity,
+      current_density_max: newMaxCurrentDensity,
+    };
+    setFormData(newFormData);
+    validateAndCalculate(newFormData);
   };
 
   const formatNumber = (num: number, decimals = 2) => {
@@ -334,232 +364,27 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
   };
 
   const getThicknessHelperText = () => {
-    return unitSystem === 'metric' ? 'Typical range: 5-50 μm' : 'Typical range: 0.2-2.0 mils';
+    return unitSystem === 'metric' ? 'Typical range: 5-500 μm' : 'Typical range: 0.2-2.0 mils';
+  };
+
+  const getCurrentDensityLabel = () => {
+    return unitSystem === 'metric' ? 'A/dm²' : 'A/in²';
+  };
+
+  const getCurrentDensityHelperText = () => {
+    if (unitSystem === 'metric') {
+      // Convert A/in² ranges to A/dm² (1 in² = 0.645 dm²)
+      const minMetric = (metalDefaults[selectedMetal].min / 0.645).toFixed(2);
+      const maxMetric = (metalDefaults[selectedMetal].max / 0.645).toFixed(2);
+      return `Typical range: ${minMetric}-${maxMetric} A/dm²`;
+    } else {
+      return `Typical range: ${metalDefaults[selectedMetal].min}-${metalDefaults[selectedMetal].max} A/in²`;
+    }
   };
 
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
-      {/* Header with Unit Toggle */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Engineering sx={{ mr: 1, fontSize: '2rem', color: '#3b82f6' }} />
-          <Typography variant="h5" sx={{ fontWeight: 700, color: '#1e293b' }}>
-            Electroplating Calculator
-          </Typography>
-          {loading && (
-            <Chip 
-              label="Auto-calculating..." 
-              size="small" 
-              color="primary"
-              sx={{ ml: 2, fontSize: '0.7rem' }}
-            />
-          )}
-        </Box>
-        
-        <ToggleButtonGroup
-          value={unitSystem}
-          exclusive
-          onChange={(_, value) => value && handleUnitSystemChange(value)}
-          size="small"
-          sx={{
-            '& .MuiToggleButton-root': {
-              fontWeight: 600,
-              '&.Mui-selected': {
-                backgroundColor: '#3b82f6',
-                color: 'white',
-                '&:hover': {
-                  backgroundColor: '#2563eb',
-                }
-              }
-            }
-          }}
-        >
-          <ToggleButton value="metric">
-            <SwapHoriz sx={{ mr: 0.5 }} />
-            Metric
-          </ToggleButton>
-          <ToggleButton value="imperial">
-            <SwapHoriz sx={{ mr: 0.5 }} />
-            Imperial
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
-
-      {/* Prominent Metal Selection */}
-      <Card 
-        sx={{ 
-          mb: 3,
-          background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-          border: '2px solid #e2e8f0',
-          borderRadius: 3,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-        }}
-      >
-        <CardContent sx={{ py: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mr: 1 }}>
-              <Science sx={{ fontSize: '1.5rem', color: '#8b5cf6' }} />
-            </Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b' }}>
-              Metal Selection
-            </Typography>
-          </Box>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={6} md={4}>
-                             <FormControl fullWidth>
-                <InputLabel sx={{ fontSize: '1.1rem', fontWeight: 600 }}>Select Plating Metal</InputLabel>
-                <Select
-                  value={selectedMetal}
-                  label="Select Plating Metal"
-                  onChange={(e) => handleMetalChange(e.target.value as any)}
-                  sx={{ 
-                    fontSize: '1.1rem',
-                    '& .MuiSelect-select': {
-                      py: 2,
-                      display: 'flex',
-                      alignItems: 'center'
-                    }
-                  }}
-                  renderValue={(value) => (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      {getMetalIcon(value as keyof typeof metalIcons, 'medium')}
-                      <Typography sx={{ fontSize: '1.1rem', fontWeight: 600 }}>
-                        {value.charAt(0).toUpperCase() + value.slice(1)}
-                      </Typography>
-                    </Box>
-                  )}
-                >
-                  <MenuItem value="copper">
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      {getMetalIcon('copper')}
-                      <Box>
-                        <Typography sx={{ fontSize: '1rem', fontWeight: 600 }}>Copper</Typography>
-                        <Typography variant="caption" color="textSecondary">Excellent conductivity, decorative</Typography>
-                      </Box>
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value="nickel">
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      {getMetalIcon('nickel')}
-                      <Box>
-                        <Typography sx={{ fontSize: '1rem', fontWeight: 600 }}>Nickel</Typography>
-                        <Typography variant="caption" color="textSecondary">Corrosion resistant, bright finish</Typography>
-                      </Box>
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value="chrome">
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      {getMetalIcon('chrome')}
-                      <Box>
-                        <Typography sx={{ fontSize: '1rem', fontWeight: 600 }}>Chrome</Typography>
-                        <Typography variant="caption" color="textSecondary">Mirror finish, wear resistant</Typography>
-                      </Box>
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value="gold">
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      {getMetalIcon('gold')}
-                      <Box>
-                        <Typography sx={{ fontSize: '1rem', fontWeight: 600 }}>Gold</Typography>
-                        <Typography variant="caption" color="textSecondary">Luxury, non-tarnishing</Typography>
-                      </Box>
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value="silver">
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      {getMetalIcon('silver')}
-                      <Box>
-                        <Typography sx={{ fontSize: '1rem', fontWeight: 600 }}>Silver</Typography>
-                        <Typography variant="caption" color="textSecondary">High conductivity, antimicrobial</Typography>
-                      </Box>
-                    </Box>
-                  </MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            {recommendations && (
-              <>
-                <Grid item xs={12} sm={6} md={4}>
-                  <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="subtitle2" color="textSecondary" sx={{ fontWeight: 600 }}>
-                      Solution Cost
-                    </Typography>
-                    <Typography variant="h5" sx={{ fontWeight: 700, color: '#059669' }}>
-                      ${formatNumber(recommendations.metal_properties.solution_cost_per_kg)}/kg
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-                    <Chip 
-                      label={recommendations.metal_properties.color}
-                      sx={{ 
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        color: '#3b82f6',
-                        fontWeight: 600
-                      }}
-                    />
-                    <Chip 
-                      label={recommendations.metal_properties.hardness}
-                      sx={{ 
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        color: '#8b5cf6',
-                        fontWeight: 600
-                      }}
-                    />
-                    <Chip 
-                      label={recommendations.metal_properties.corrosion_resistance}
-                      sx={{ 
-                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
-                        color: '#059669',
-                        fontWeight: 600
-                      }}
-                    />
-                  </Box>
-                </Grid>
-              </>
-            )}
-          </Grid>
-        </CardContent>
-      </Card>
-
-      {/* Surface Area Display - Only show if statistics available */}
-      {statistics && (
-        <Alert 
-          severity="info" 
-          sx={{ 
-            mb: 3,
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            border: '2px solid rgba(59, 130, 246, 0.3)',
-            borderRadius: 2,
-            '& .MuiAlert-icon': {
-              color: '#3b82f6'
-            }
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Layers sx={{ fontSize: '2rem', color: '#3b82f6' }} />
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e3a8a', mb: 0.5 }}>
-                Model Surface Area
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: '#3b82f6' }}>
-                {unitSystem === 'metric' 
-                  ? `${formatNumber(statistics.surface_area)} mm²` 
-                  : `${formatNumber(statistics.surface_area * 0.00155)} in²`
-                }
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>
-                {unitSystem === 'metric' 
-                  ? `(${formatNumber(statistics.surface_area / 100)} cm²)`
-                  : `(${formatNumber(statistics.surface_area * 0.00155 * 6.4516)} cm²)`
-                }
-              </Typography>
-            </Box>
-          </Box>
-        </Alert>
-      )}
-
+      {/* Header */}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -577,17 +402,142 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
           </Box>
         </AccordionSummary>
         <AccordionDetails>
+          {/* Unit System Toggle */}
+          <Grid container spacing={3} sx={{ mb: 3 }}>
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <ToggleButtonGroup
+                  value={unitSystem}
+                  exclusive
+                  onChange={(_, value) => value && handleUnitSystemChange(value)}
+                  size="small"
+                  sx={{
+                    '& .MuiToggleButton-root': {
+                      fontWeight: 600,
+                      '&.Mui-selected': {
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        '&:hover': {
+                          backgroundColor: '#2563eb',
+                        }
+                      }
+                    }
+                  }}
+                >
+                  <ToggleButton value="metric">
+                    <SwapHoriz sx={{ mr: 0.5 }} />
+                    Metric
+                  </ToggleButton>
+                  <ToggleButton value="imperial">
+                    <SwapHoriz sx={{ mr: 0.5 }} />
+                    Imperial
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              </Box>
+              <Divider sx={{ mt: 2 }} />
+            </Grid>
+          </Grid>
+
           <Grid container spacing={3}>
+            {/* Metal Selection */}
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Plating Metal</InputLabel>
+                <Select
+                  value={selectedMetal}
+                  label="Plating Metal"
+                  onChange={(e) => handleMetalChange(e.target.value as any)}
+                  renderValue={(value) => (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      {getMetalIcon(value as keyof typeof metalIcons)}
+                      <Typography>
+                        {value.charAt(0).toUpperCase() + value.slice(1)}
+                      </Typography>
+                    </Box>
+                  )}
+                >
+                  <MenuItem value="copper">
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      {getMetalIcon('copper')}
+                      <Box>
+                        <Typography>Copper</Typography>
+                        <Typography variant="caption" color="textSecondary">Excellent conductivity, decorative</Typography>
+                      </Box>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="nickel">
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      {getMetalIcon('nickel')}
+                      <Box>
+                        <Typography>Nickel</Typography>
+                        <Typography variant="caption" color="textSecondary">Corrosion resistant, bright finish</Typography>
+                      </Box>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="chrome">
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      {getMetalIcon('chrome')}
+                      <Box>
+                        <Typography>Chrome</Typography>
+                        <Typography variant="caption" color="textSecondary">Mirror finish, wear resistant</Typography>
+                      </Box>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="gold">
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      {getMetalIcon('gold')}
+                      <Box>
+                        <Typography>Gold</Typography>
+                        <Typography variant="caption" color="textSecondary">Luxury, non-tarnishing</Typography>
+                      </Box>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="silver">
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      {getMetalIcon('silver')}
+                      <Box>
+                        <Typography>Silver</Typography>
+                        <Typography variant="caption" color="textSecondary">High conductivity, antimicrobial</Typography>
+                      </Box>
+                    </Box>
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            
+            {/* Plating Type Selection */}
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Plating Type</InputLabel>
+                <Select
+                  value={platingType}
+                  label="Plating Type"
+                  onChange={(e) => setPlatingType(e.target.value as 'brush' | 'bath')}
+                >
+                  <MenuItem value="bath">
+                    <Box>
+                      <Typography>Bath Plating</Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="brush" disabled>
+                    <Box>
+                      <Typography>Brush Plating</Typography>
+                    </Box>
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            
             <Grid item xs={12} sm={6}>
               <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
                 <TextField
                   fullWidth
-                  label="Min Current Density (A/in²)"
+                  label={`Min Current Density (${getCurrentDensityLabel()})`}
                   type="number"
                   value={formData.current_density_min}
                   onChange={(e) => handleInputChange('current_density_min', parseFloat(e.target.value))}
                   inputProps={{ min: 0.01, max: 1, step: 0.01 }}
-                  helperText="Typical range: 0.05-0.15 A/in²"
+                  helperText={getCurrentDensityHelperText()}
                   InputProps={{
                     startAdornment: <BatteryChargingFull sx={{ mr: 1, color: '#6b7280' }} />
                   }}
@@ -602,12 +552,12 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
               <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
                 <TextField
                   fullWidth
-                  label="Max Current Density (A/in²)"
+                  label={`Max Current Density (${getCurrentDensityLabel()})`}
                   type="number"
                   value={formData.current_density_max}
                   onChange={(e) => handleInputChange('current_density_max', parseFloat(e.target.value))}
                   inputProps={{ min: 0.01, max: 1, step: 0.01 }}
-                  helperText="Typical range: 0.05-0.15 A/in²"
+                  helperText={getCurrentDensityHelperText()}
                   InputProps={{
                     startAdornment: <BatteryChargingFull sx={{ mr: 1, color: '#6b7280' }} />
                   }}
@@ -874,6 +824,38 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
                 </CardContent>
               </Card>
             </Grid>
+
+            {/* Surface Area */}
+            {statistics && (
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ 
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(30, 58, 138, 0.1) 100%)',
+                  border: '1px solid rgba(59, 130, 246, 0.2)'
+                }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <AspectRatio sx={{ mr: 1, color: '#3b82f6' }} />
+                      <Typography variant="subtitle2" color="textSecondary">
+                        Surface Area
+                      </Typography>
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#3b82f6' }}>
+                      {unitSystem === 'metric' 
+                        ? `${formatNumber(statistics.surface_area)} mm²` 
+                        : `${formatNumber(statistics.surface_area * 0.00155)} in²`
+                      }
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      {unitSystem === 'metric' 
+                        ? `${formatNumber(statistics.surface_area / 100)} cm²`
+                        : `${formatNumber(statistics.surface_area * 0.00155 * 6.4516)} cm²`
+                      }
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            )}
           </Grid>
         </Box>
       )}

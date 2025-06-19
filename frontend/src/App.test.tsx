@@ -26,7 +26,7 @@ describe('App', () => {
   it('renders without crashing', () => {
     render(<App />);
     expect(screen.getByText(/PlateForge/i)).toBeInTheDocument();
-    expect(screen.getByText(/Advanced Electroplating Calculator & 3D Analysis/i)).toBeInTheDocument();
+    expect(screen.getByText(/Electroplating Calculator/i)).toBeInTheDocument();
   });
 
   it('displays main components', () => {
@@ -34,13 +34,11 @@ describe('App', () => {
     
     // Check for main sections - use more specific text
     expect(screen.getByText(/PlateForge/i)).toBeInTheDocument();
-    expect(screen.getByText(/Advanced STL analysis for precision electroplating calculations/i)).toBeInTheDocument();
   });
 
   it('shows upload section initially', () => {
     render(<App />);
     
     expect(screen.getByText(/Drag & drop your 3D model here, or click to browse/i)).toBeInTheDocument();
-    expect(screen.getByText(/Advanced STL analysis for precision electroplating calculations/i)).toBeInTheDocument();
   });
 }); 

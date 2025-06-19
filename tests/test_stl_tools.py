@@ -8,7 +8,7 @@ It creates a simple test cube and shows how to use the different methods.
 
 import numpy as np
 from stl import mesh
-from api.stl import STLTools
+from api.core.stl_tools import STLTools
 import tempfile
 import os
 

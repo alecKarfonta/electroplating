@@ -356,7 +356,7 @@ function App() {
               fontSize: '0.9rem',
               fontWeight: 400
             }}>
-              Advanced Electroplating Calculator & 3D Analysis
+              Electroplating Calculator
             </Typography>
           </Box>
           <Box sx={{ 
@@ -456,12 +456,6 @@ function App() {
               }}>
                 Upload Your 3D Model
               </Typography>
-              <Typography variant="h6" color="text.secondary" sx={{ 
-                fontWeight: 400,
-                color: '#64748b'
-              }}>
-                Advanced STL analysis for precision electroplating calculations
-              </Typography>
             </Box>
           </Box>
           <Typography variant="body1" color="text.secondary" sx={{ 
@@ -551,6 +545,53 @@ function App() {
               </Paper>
             </Grid>
           </Grid>
+        )}
+
+        {/* Surface Area Display - Underneath 3D model view */}
+        {currentFile && statistics && (
+          <Paper 
+            elevation={3} 
+            sx={{ 
+              p: 4, 
+              mb: 3,
+              borderRadius: 3,
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(30, 58, 138, 0.05) 100%)',
+              border: '2px solid rgba(59, 130, 246, 0.2)'
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="h5" sx={{ 
+                  fontWeight: 600, 
+                  color: '#1e3a8a',
+                  mb: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 1
+                }}>
+                  <AspectRatio sx={{ fontSize: '2rem', color: '#3b82f6' }} />
+                  Model Surface Area
+                </Typography>
+                <Typography variant="h2" sx={{ 
+                  fontWeight: 800, 
+                  color: '#3b82f6',
+                  mb: 1
+                }}>
+                  {statistics.surface_area >= 100 
+                    ? `${(statistics.surface_area / 100).toFixed(2)} cm²`
+                    : `${statistics.surface_area.toFixed(2)} mm²`
+                  }
+                </Typography>
+                <Typography variant="body1" sx={{ 
+                  color: '#64748b',
+                  fontWeight: 500
+                }}>
+                  Total area available for electroplating
+                </Typography>
+              </Box>
+            </Box>
+          </Paper>
         )}
 
         {/* Analysis, Cost Calculator, and Electroplating in Accordion */}

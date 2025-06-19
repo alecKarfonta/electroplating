@@ -5,9 +5,8 @@ Test script to verify copper electroplating calculations with 0.1 A/in² current
 
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), 'api', 'core'))
 
-from stl_tools import STLTools
+from api.core.stl_tools import STLTools
 
 def test_copper_calculations():
     """Test copper electroplating calculations with 0.1 A/in² current density."""

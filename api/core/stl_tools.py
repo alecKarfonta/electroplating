@@ -686,63 +686,73 @@ class STLTools:
         metal_properties = {
             'nickel': {
                 'density_g_cm3': 8.9,
-                'current_density_min': 0.07,
-                'current_density_max': 0.1,
-                'voltage': 6.0,
-                'plating_rate_inches_per_min': 0.4 / 25400,  # Convert µm/min to inches/min (0.4 µm/min)
-                'solution_cost_per_kg': 50.0,
+                'current_density_min': 0.05,  # Refined: Industry standard 0.05-0.15 A/in²
+                'current_density_max': 0.15,
+                'voltage': 4.5,  # Refined: Typical 4-6V, 4.5V optimal
+                'plating_rate_inches_per_min': 0.3 / 25400,  # Refined: 0.3 µm/min typical
+                'solution_cost_per_kg': 45.0,  # Refined: Current nickel solution costs
                 'color': 'Silver-gray',
                 'hardness': 'Hard',
                 'corrosion_resistance': 'Excellent',
-                'typical_thickness_microns': 25.0
+                'typical_thickness_microns': 12.5,  # Refined: 10-25µm typical, 12.5µm average
+                'current_efficiency': 0.95,  # Added: Typical nickel plating efficiency
+                'temperature_c': 50  # Added: Optimal operating temperature
             },
             'copper': {
                 'density_g_cm3': 8.96,
-                'current_density_min': 0.07,
-                'current_density_max': 0.1,
-                'voltage': 3.0,
-                'plating_rate_inches_per_min': 0.45 / 25400,  # Convert µm/min to inches/min (0.45 µm/min)
-                'solution_cost_per_kg': 30.0,
+                'current_density_min': 0.05,  # Refined: Standard 0.05-0.15 A/in²
+                'current_density_max': 0.15,
+                'voltage': 2.5,  # Refined: Typical 2-4V, 2.5V optimal
+                'plating_rate_inches_per_min': 0.5 / 25400,  # Refined: 0.5 µm/min typical
+                'solution_cost_per_kg': 25.0,  # Refined: Current copper solution costs
                 'color': 'Reddish-brown',
                 'hardness': 'Soft',
                 'corrosion_resistance': 'Good',
-                'typical_thickness_microns': 80.0
+                'typical_thickness_microns': 25.0,  # Refined: 20-50µm typical, 25µm standard
+                'current_efficiency': 0.98,  # Added: High copper plating efficiency
+                'temperature_c': 25  # Added: Room temperature operation
             },
             'chrome': {
                 'density_g_cm3': 7.19,
-                'current_density_min': 0.1,
-                'current_density_max': 0.15,
-                'voltage': 12.0,
-                'plating_rate_inches_per_min': 0.25 / 25400,  # Convert µm/min to inches/min (0.25 µm/min)
-                'solution_cost_per_kg': 80.0,
+                'current_density_min': 0.15,  # Refined: Chrome requires higher 0.15-0.30 A/in²
+                'current_density_max': 0.30,
+                'voltage': 6.0,  # Refined: Decorative chrome 4-8V, 6V optimal
+                'plating_rate_inches_per_min': 0.15 / 25400,  # Refined: 0.15 µm/min typical
+                'solution_cost_per_kg': 120.0,  # Refined: Higher chrome solution costs
                 'color': 'Bright silver',
                 'hardness': 'Very hard',
                 'corrosion_resistance': 'Excellent',
-                'typical_thickness_microns': 15.0
+                'typical_thickness_microns': 0.25,  # Refined: Decorative chrome 0.2-0.5µm
+                'current_efficiency': 0.18,  # Added: Low chrome plating efficiency
+                'temperature_c': 50  # Added: Optimal operating temperature
             },
             'gold': {
                 'density_g_cm3': 19.32,
-                'current_density_min': 0.02,
-                'current_density_max': 0.05,
-                'voltage': 3.0,
-                'plating_rate_inches_per_min': 0.15 / 25400,  # Convert µm/min to inches/min (0.15 µm/min)
-                'solution_cost_per_kg': 2000.0,
+                'current_density_min': 0.02,  # Refined: Gold plating 0.02-0.08 A/in²
+                'current_density_max': 0.08,
+                'voltage': 2.0,  # Refined: Low voltage 1.5-3V, 2V optimal
+                'plating_rate_inches_per_min': 0.1 / 25400,  # Refined: 0.1 µm/min typical
+                'solution_cost_per_kg': 1800.0,  # Refined: Current gold solution costs
                 'color': 'Yellow',
                 'hardness': 'Soft',
                 'corrosion_resistance': 'Excellent',
-                'typical_thickness_microns': 5.0
+                'typical_thickness_microns': 2.5,  # Refined: 1-5µm typical, 2.5µm standard
+                'current_efficiency': 0.85,  # Added: Good gold plating efficiency
+                'temperature_c': 60  # Added: Elevated temperature for gold
             },
             'silver': {
                 'density_g_cm3': 10.49,
-                'current_density_min': 0.03,
-                'current_density_max': 0.06,
-                'voltage': 2.0,
-                'plating_rate_inches_per_min': 0.2 / 25400,  # Convert µm/min to inches/min (0.2 µm/min)
-                'solution_cost_per_kg': 500.0,
+                'current_density_min': 0.05,  # Refined: Silver plating 0.05-0.20 A/in²
+                'current_density_max': 0.20,
+                'voltage': 1.5,  # Refined: Low voltage 1-2.5V, 1.5V optimal
+                'plating_rate_inches_per_min': 0.25 / 25400,  # Refined: 0.25 µm/min typical
+                'solution_cost_per_kg': 400.0,  # Refined: Current silver solution costs
                 'color': 'Bright silver',
                 'hardness': 'Soft',  
                 'corrosion_resistance': 'Good',
-                'typical_thickness_microns': 10.0
+                'typical_thickness_microns': 7.5,  # Refined: 5-15µm typical, 7.5µm standard
+                'current_efficiency': 0.90,  # Added: High silver plating efficiency
+                'temperature_c': 25  # Added: Room temperature operation
             }
         }
         
@@ -757,48 +767,59 @@ class STLTools:
             current_density_max=props['current_density_max'],
             plating_thickness_microns=props['typical_thickness_microns'],
             metal_density_g_cm3=props['density_g_cm3'],
+            current_efficiency=props.get('current_efficiency', 0.95),  # Use metal-specific efficiency
             voltage=props['voltage']
         )
         
-        # Add metal-specific recommendations
+        # Add metal-specific recommendations with refined parameters
         recommendations = {
             'metal_properties': props,
             'calculated_parameters': plating_params,
             'metal_specific_tips': {
                 'nickel': [
-                    "Use bright nickel for decorative finish",
-                    "Consider semi-bright nickel for better adhesion",
-                    "Maintain pH between 3.5-4.5",
-                    "Temperature: 45-55°C",
-                    "Plating time calculated based on thickness and current density"
+                    "Use bright nickel for decorative finish, semi-bright for underlayer",
+                    "Maintain pH between 3.8-4.2 for optimal results",
+                    f"Operating temperature: {props.get('temperature_c', 50)}°C ±5°C",
+                    f"Current efficiency: {props.get('current_efficiency', 0.95)*100:.0f}% - excellent efficiency",
+                    "Typical thickness: 10-25µm for decorative applications",
+                    "Requires good agitation for uniform deposit",
+                    "Pre-treatment: Alkaline clean + acid activation essential"
                 ],
                 'copper': [
-                    "Excellent base layer for other metals",
-                    "Use cyanide-free solutions for safety",
-                    "Maintain pH between 8.5-9.5",
-                    "Temperature: 25-35°C",
-                    "Plating time calculated based on thickness and current density"
+                    "Excellent base layer - high conductivity and ductility",
+                    "Use pyrophosphate or sulfate solutions (avoid cyanide)",
+                    "Maintain pH between 8.0-9.0 for pyrophosphate baths",
+                    f"Operating temperature: {props.get('temperature_c', 25)}°C (room temperature)",
+                    f"Current efficiency: {props.get('current_efficiency', 0.98)*100:.0f}% - highest among common metals",
+                    "Typical thickness: 20-50µm for functional applications",
+                    "Excellent throwing power - good for complex geometries"
                 ],
                 'chrome': [
-                    "Requires bright nickel underlayer",
-                    "Use hexavalent chrome for decorative finish",
-                    "Maintain temperature: 45-55°C",
-                    "High current efficiency required",
-                    "Plating time calculated based on thickness and current density"
+                    "CRITICAL: Requires nickel underlayer (10-15µm minimum)",
+                    "Decorative chrome: 0.2-0.5µm thickness only",
+                    f"Operating temperature: {props.get('temperature_c', 50)}°C ±3°C",
+                    f"Current efficiency: {props.get('current_efficiency', 0.18)*100:.0f}% - requires high current density",
+                    "WARNING: Low current efficiency - high energy consumption",
+                    "Requires excellent ventilation - toxic fumes",
+                    "Hard chrome (different process): 25-250µm for wear resistance"
                 ],
                 'gold': [
-                    "Use bright gold for decorative finish",
-                    "Consider flash gold for cost savings",
-                    "Maintain pH between 4.0-5.0",
-                    "Temperature: 25-35°C",
-                    "Plating time calculated based on thickness and current density"
+                    "Premium finish - excellent corrosion resistance",
+                    "Flash gold (0.1-0.5µm) for cost-effective decorative finish",
+                    "Maintain pH between 4.2-4.8 for neutral gold baths",
+                    f"Operating temperature: {props.get('temperature_c', 60)}°C for optimal deposit",
+                    f"Current efficiency: {props.get('current_efficiency', 0.85)*100:.0f}% - good efficiency at low current density",
+                    "Typical thickness: 1-5µm (2.5µm standard)",
+                    "Requires nickel barrier layer to prevent migration"
                 ],
                 'silver': [
-                    "Excellent conductivity",
-                    "Use bright silver for decorative finish",
-                    "Maintain pH between 8.0-9.0",
-                    "Temperature: 25-35°C",
-                    "Plating time calculated based on thickness and current density"
+                    "Highest electrical conductivity of all metals",
+                    "Bright silver solutions for decorative applications",
+                    "Maintain pH between 8.5-9.5 for cyanide-free solutions",
+                    f"Operating temperature: {props.get('temperature_c', 25)}°C (room temperature)",
+                    f"Current efficiency: {props.get('current_efficiency', 0.90)*100:.0f}% - very high efficiency",
+                    "Typical thickness: 5-15µm for functional applications",
+                    "Prone to tarnishing - consider protective topcoat"
                 ]
             }
         }

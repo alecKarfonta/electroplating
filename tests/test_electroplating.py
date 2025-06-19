@@ -5,10 +5,9 @@ Simple test script for electroplating calculations
 
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), 'api', 'core'))
 
 # Import only the STLTools class
-from stl_tools import STLTools
+from api.core.stl_tools import STLTools
 
 def test_electroplating_calculations():
     """Test the electroplating calculation functionality."""
