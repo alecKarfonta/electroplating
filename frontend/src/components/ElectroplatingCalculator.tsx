@@ -258,7 +258,7 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
     validateAndCalculate(newFormData);
   };
 
-  // Initial calculation when component loads with statistics
+  // Recalculate when statistics change (including after scaling)
   useEffect(() => {
     if (statistics?.surface_area && statistics.surface_area > 0) {
       // Only proceed if we have statistics (surface area data)
@@ -273,12 +273,12 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
         onCalculate(formData);
       }
     }
-  }, [statistics?.surface_area]); // Only trigger when surface area becomes available
+  }, [statistics, formData]); // Trigger when statistics or formData changes - covers scaling and parameter updates
 
-  // Auto-get recommendations when metal is selected
+  // Auto-get recommendations when metal is selected or statistics change (after scaling)
   useEffect(() => {
     onGetRecommendations({ metal_type: selectedMetal });
-  }, [selectedMetal]); // Only depend on selectedMetal, not the function reference
+  }, [selectedMetal, statistics]); // Depend on selectedMetal and statistics to refresh after scaling
 
   // Unit conversion functions
   const convertArea = (area: { cm2: number; in2: number }) => {

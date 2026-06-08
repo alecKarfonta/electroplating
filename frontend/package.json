@@ -2,7 +2,7 @@
   "name": "stl-analysis-frontend",
   "version": "1.0.0",
   "private": true,
-  "homepage": "/stl",
+  "homepage": "/plateforge",
   "dependencies": {
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",

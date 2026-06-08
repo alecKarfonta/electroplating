@@ -56,6 +56,11 @@ cd electroplating
 ```
 
 ### 2. Access the Application
+
+#### Live Demo
+- **Production Service**: https://mlapi.us/plateforge/
+
+#### Local Development
 - **Frontend**: https://localhost
 - **API Documentation**: https://localhost/api/docs
 - **Monitoring**: http://localhost:9090 (Prometheus)
