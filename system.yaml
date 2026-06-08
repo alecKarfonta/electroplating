@@ -1,0 +1,32 @@
+name: plateforge
+namespace: plateforge
+
+build:
+  compose_file: docker-compose.yml
+  service: app
+  homelab:
+    image: docker.io/library/electroplating-app:local
+  registry:
+    image: ghcr.io/aleckarfonta/electroplating/backend
+    tag: latest
+    push: true
+
+k8s:
+  deployment: backend
+  default_overlay: homelab
+  overlays:
+    homelab:
+      import_nodes: homelab/cpu-tier=cheap
+    production: {}
+
+verify:
+  - url: http://127.0.0.1:8116/health
+    description: LoadBalancer API health on edge host
+  - url: https://mlapi.us/stl/api/health
+    description: public API route
+  - url: https://mlapi.us/plateforge/
+    expect_status: 200
+    description: public UI route
+
+nginx:
+  name: plateforge

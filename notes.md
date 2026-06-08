@@ -27,13 +27,13 @@ Nginx (on mlapi.us host):
 sudo ~/git/system/scripts/install-nginx-app.sh plateforge
 ```
 
-## Standardized deployment (2026-06-08)
+## System-managed deployment (2026-06-08)
 
-- **System repo**: `~/git/system` — app registry, nginx configs, shared deploy scripts
-- **Kustomize overlays**: `k8s/overlays/homelab` (k3s local) and `k8s/overlays/production` (GHCR + ingress)
-- **Namespace/config**: unified to `plateforge` / `plateforge-config` in manifests
-- **Deploy**: declarative `kubectl apply -k` via `~/git/system/scripts/deploy-app.sh plateforge`
-- **Nginx canonical**: `~/git/system/nginx/apps/plateforge.conf`
+- **Contract**: `system.yaml` in app repo defines build, k8s, verify, nginx
+- **Registry**: `~/git/system/apps/plateforge.yaml` points at this repo
+- **Deploy**: `~/git/system/scripts/deploy-app.sh plateforge deploy`
+- **Validate**: `~/git/system/scripts/validate-app.sh plateforge`
+- **Docs**: `~/git/system/docs/adding-an-app.md`
 
 ## Changes
 
