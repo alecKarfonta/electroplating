@@ -7,8 +7,8 @@ import {
   Toolbar,
   CssBaseline,
   Grid,
-  Alert,
   Snackbar,
+  Alert,
   CircularProgress,
   Paper,
   Accordion,
@@ -16,17 +16,7 @@ import {
   AccordionDetails,
   Backdrop,
 } from '@mui/material';
-import { 
-  ThreeDRotation, 
-  Science, 
-  CloudUpload, 
-  Analytics, 
-  Calculate, 
-  ElectricBolt, 
-  AspectRatio,
-  ExpandMore,
-  HighQuality,
-} from '@mui/icons-material';
+import { ExpandMore } from '@mui/icons-material';
 
 import FileUpload from './components/FileUpload';
 import STLViewer from './components/STLViewer';
@@ -58,7 +48,6 @@ import {
   ScaleRequest,
 } from './types/api';
 
-// Error Boundary Component
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean; error?: Error }
@@ -80,26 +69,25 @@ class ErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return (
         <Container maxWidth="md" sx={{ mt: 4 }}>
-          <Alert severity="error" sx={{ mb: 2 }}>
-            <Typography variant="h6" gutterBottom>
+          <Alert severity="error">
+            <Typography variant="subtitle1" gutterBottom>
               Something went wrong
             </Typography>
             <Typography variant="body2">
-              An unexpected error occurred. Please refresh the page and try again.
+              Please refresh the page and try again.
             </Typography>
-            {this.state.error && (
-              <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
-                Error: {this.state.error.message}
-              </Typography>
-            )}
           </Alert>
         </Container>
       );
     }
-
     return this.props.children;
   }
 }
+
+const sectionPaper = {
+  p: 3,
+  mb: 2,
+};
 
 function App() {
   const [currentFile, setCurrentFile] = useState<File | null>(null);
@@ -119,7 +107,6 @@ function App() {
   const [currentScale, setCurrentScale] = useState<number>(1.0);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Global loading state
   useEffect(() => {
     setIsLoading(uploadLoading || analysisLoading || costLoading || platingLoading || scalingLoading);
   }, [uploadLoading, analysisLoading, costLoading, platingLoading, scalingLoading]);
@@ -138,186 +125,108 @@ function App() {
     try {
       const response: FileUploadResponse = await uploadSTLFile(file);
       setSessionId(response.session_id);
-      setSuccessMessage(`File "${response.filename}" uploaded successfully!`);
-      
-      // Automatically load analysis
+      setSuccessMessage(`"${response.filename}" uploaded`);
       await loadAnalysis(response.session_id);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to upload file';
-      setError(errorMessage);
+      setError(err.response?.data?.detail || err.message || 'Failed to upload file');
       setCurrentFile(null);
-      console.error('Upload error:', err);
     } finally {
       setUploadLoading(false);
     }
   };
 
-  const loadAnalysis = async (sessionId: string) => {
+  const loadAnalysis = async (sid: string) => {
     setAnalysisLoading(true);
     setError(null);
-
     try {
       const [statsResponse, validationResponse] = await Promise.all([
-        getMeshStatistics(sessionId),
-        validateMesh(sessionId),
+        getMeshStatistics(sid),
+        validateMesh(sid),
       ]);
-
       setStatistics(statsResponse);
       setValidation(validationResponse);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to load analysis';
-      setError(errorMessage);
-      console.error('Analysis error:', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to load analysis');
     } finally {
       setAnalysisLoading(false);
     }
   };
 
   const handleCostCalculation = async (costRequest: ResinCostRequest) => {
-    if (!sessionId) {
-      setError('No file uploaded');
-      return;
-    }
-
+    if (!sessionId) { setError('No file uploaded'); return; }
     setCostLoading(true);
     setError(null);
-
     try {
-      const response = await estimateResinCost(sessionId, costRequest);
-      setCostEstimate(response);
-      setSuccessMessage('Cost calculation completed!');
+      setCostEstimate(await estimateResinCost(sessionId, costRequest));
+      setSuccessMessage('Cost calculated');
     } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to calculate cost';
-      setError(errorMessage);
-      console.error('Cost calculation error:', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to calculate cost');
     } finally {
       setCostLoading(false);
     }
   };
 
   const handleElectroplatingCalculation = async (platingRequest: ElectroplatingRequest) => {
-    if (!sessionId) {
-      setError('No file uploaded');
-      return;
-    }
-
+    if (!sessionId) { setError('No file uploaded'); return; }
     setPlatingLoading(true);
     setError(null);
-
     try {
-      const response = await calculateElectroplatingParameters(sessionId, platingRequest);
-      setPlatingEstimate(response);
-      setSuccessMessage('Electroplating calculation completed!');
+      setPlatingEstimate(await calculateElectroplatingParameters(sessionId, platingRequest));
     } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to calculate electroplating parameters';
-      setError(errorMessage);
-      console.error('Electroplating calculation error:', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to calculate electroplating parameters');
     } finally {
       setPlatingLoading(false);
     }
   };
 
   const handleGetRecommendations = async (recommendationRequest: ElectroplatingRecommendationRequest) => {
-    if (!sessionId) {
-      setError('No file uploaded');
-      return;
-    }
-
+    if (!sessionId) { setError('No file uploaded'); return; }
     setPlatingLoading(true);
-    setError(null);
-
     try {
-      const response = await getElectroplatingRecommendations(sessionId, recommendationRequest);
-      setRecommendations(response);
-      setSuccessMessage('Electroplating recommendations generated!');
+      setRecommendations(await getElectroplatingRecommendations(sessionId, recommendationRequest));
     } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to get recommendations';
-      setError(errorMessage);
-      console.error('Recommendations error:', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to get recommendations');
     } finally {
       setPlatingLoading(false);
     }
   };
 
   const handleScale = async (scaleRequest: ScaleRequest) => {
-    if (!sessionId) {
-      setError('No file uploaded');
-      return;
-    }
-
+    if (!sessionId) { setError('No file uploaded'); return; }
     setScalingLoading(true);
     setError(null);
-
     try {
       await scaleMesh(sessionId, scaleRequest);
-      
-      // Update current scale - handle both number and array types
-      if (Array.isArray(scaleRequest.scale_factor)) {
-        setCurrentScale(scaleRequest.scale_factor[0]); // Use X scale as reference
-      } else {
-        setCurrentScale(scaleRequest.scale_factor);
-      }
-      
-      // Reload all analysis data with new scale
+      setCurrentScale(Array.isArray(scaleRequest.scale_factor) ? scaleRequest.scale_factor[0] : scaleRequest.scale_factor);
       await loadAnalysis(sessionId);
-      
-      // Clear all estimates since they need to be recalculated
       setCostEstimate(null);
       setPlatingEstimate(null);
       setRecommendations(null);
-      
-      const scaleDisplay = Array.isArray(scaleRequest.scale_factor) 
-        ? `${scaleRequest.scale_factor[0]}x` 
-        : `${scaleRequest.scale_factor}x`;
-      setSuccessMessage(`Object scaled by ${scaleDisplay} successfully!`);
+      setSuccessMessage('Scale applied');
     } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to scale object';
-      setError(errorMessage);
-      console.error('Scale error:', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to scale object');
     } finally {
       setScalingLoading(false);
     }
   };
 
   const handleReset = async () => {
-    if (!sessionId) {
-      setError('No file uploaded');
-      return;
-    }
-
+    if (!sessionId) { setError('No file uploaded'); return; }
     setScalingLoading(true);
     setError(null);
-
     try {
       await resetMesh(sessionId);
-      
-      // Reset current scale to 1.0
       setCurrentScale(1.0);
-      
-      // Reload all analysis data with original scale
       await loadAnalysis(sessionId);
-      
-      // Clear all estimates since they need to be recalculated
       setCostEstimate(null);
       setPlatingEstimate(null);
       setRecommendations(null);
-      
-      setSuccessMessage('Object reset to original state successfully!');
+      setSuccessMessage('Reset to original size');
     } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to reset object';
-      setError(errorMessage);
-      console.error('Reset error:', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to reset object');
     } finally {
       setScalingLoading(false);
     }
-  };
-
-  const handleRefreshData = async () => {
-    if (!sessionId) {
-      setError('No file uploaded');
-      return;
-    }
-    await loadAnalysis(sessionId);
   };
 
   const handleCloseSnackbar = () => {
@@ -325,217 +234,54 @@ function App() {
     setSuccessMessage(null);
   };
 
+  const notification = error || successMessage;
+  const notificationSeverity = error ? 'error' : 'success';
+
   return (
     <ErrorBoundary>
       <CssBaseline />
-      <AppBar 
-        position="static" 
-        sx={{ 
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%)',
-          boxShadow: '0 4px 20px rgba(30, 58, 138, 0.3)'
-        }}
-      >
-        <Toolbar sx={{ minHeight: '72px !important' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
-            <ElectricBolt sx={{ mr: 1, fontSize: '2rem', color: '#fbbf24' }} />
-            <Science sx={{ mr: 1, fontSize: '1.8rem', color: '#60a5fa' }} />
-          </Box>
-          <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="h5" component="div" sx={{ 
-              fontWeight: 700,
-              background: 'linear-gradient(45deg, #fbbf24, #f59e0b)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              letterSpacing: '0.5px'
-            }}>
-              PlateForge
-            </Typography>
-            <Typography variant="body2" sx={{ 
-              color: 'rgba(255, 255, 255, 0.8)',
-              fontSize: '0.9rem',
-              fontWeight: 400
-            }}>
-              Electroplating Calculator
-            </Typography>
-          </Box>
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center',
-            background: 'rgba(255, 255, 255, 0.1)',
-            borderRadius: 2,
-            px: 2,
-            py: 0.5
-          }}>
-            <HighQuality sx={{ mr: 0.5, color: '#fbbf24', fontSize: '1.2rem' }} />
-            <Typography variant="caption" sx={{ color: 'white', fontWeight: 500 }}>
-              Precision Metal Finishing
-            </Typography>
-          </Box>
+      <AppBar position="static" color="primary" elevation={0}>
+        <Toolbar sx={{ minHeight: 56 }}>
+          <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+            PlateForge
+          </Typography>
+          <Typography variant="body2" sx={{ ml: 1.5, opacity: 0.7 }}>
+            Electroplating Calculator
+          </Typography>
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-        {/* Global Loading Backdrop */}
-        <Backdrop
-          sx={{ 
-            color: '#fff', 
-            zIndex: (theme) => theme.zIndex.drawer + 1,
-            background: 'rgba(30, 58, 138, 0.8)'
-          }}
-          open={isLoading}
-        >
-          <Box sx={{ textAlign: 'center' }}>
-            <CircularProgress 
-              color="inherit" 
-              size={60}
-              sx={{ mb: 2, color: '#fbbf24' }}
-            />
-            <Typography variant="h6" sx={{ color: 'white', fontWeight: 500 }}>
-              Processing...
-            </Typography>
-          </Box>
+      <Container maxWidth="lg" sx={{ py: 3 }}>
+        <Backdrop open={isLoading} sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+          <CircularProgress color="inherit" size={36} />
         </Backdrop>
 
-        {/* Error Display */}
-        {error && (
-          <Alert 
-            severity="error" 
-            sx={{ 
-              mb: 3,
-              borderRadius: 2,
-              '& .MuiAlert-icon': {
-                color: '#dc2626'
-              }
-            }} 
-            onClose={handleCloseSnackbar}
-          >
-            {error}
-          </Alert>
-        )}
-
-        {/* Success Message */}
-        {successMessage && (
-          <Alert 
-            severity="success" 
-            sx={{ 
-              mb: 3,
-              borderRadius: 2,
-              '& .MuiAlert-icon': {
-                color: '#059669'
-              }
-            }} 
-            onClose={handleCloseSnackbar}
-          >
-            {successMessage}
-          </Alert>
-        )}
-
-        {/* File Upload Section - Always at the top */}
-        <Paper 
-          elevation={3} 
-          sx={{ 
-            p: 4, 
-            mb: 3,
-            borderRadius: 3,
-            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%)',
-            border: '1px solid rgba(30, 58, 138, 0.1)'
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <CloudUpload sx={{ 
-              mr: 2, 
-              fontSize: '2.5rem',
-              color: '#3730a3'
-            }} />
-            <Box>
-              <Typography variant="h4" gutterBottom sx={{ 
-                fontWeight: 700,
-                color: '#1e3a8a',
-                mb: 0.5
-              }}>
-                Upload Your 3D Model
-              </Typography>
-            </Box>
-          </Box>
-          <Typography variant="body1" color="text.secondary" sx={{ 
-            mb: 3,
-            fontSize: '1.1rem',
-            lineHeight: 1.6
-          }}>
-            Upload your 3D model file to analyze surface area, volume, and material properties. 
-            Get precise electroplating parameters, cost estimates, and process recommendations.
+        <Paper sx={sectionPaper}>
+          <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+            Upload Model
           </Typography>
           <FileUpload onFileSelect={handleFileSelect} loading={uploadLoading} />
         </Paper>
 
-        {/* 3D Viewer and Scaling Controls - Always visible when file is uploaded */}
         {currentFile && (
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            {/* 3D Viewer - Takes up most of the space */}
+          <Grid container spacing={2} sx={{ mb: 2 }}>
             <Grid item xs={12} md={8}>
-              <Paper 
-                elevation={3} 
-                sx={{ 
-                  p: 3, 
-                  height: '650px',
-                  borderRadius: 3,
-                  background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <ThreeDRotation sx={{ 
-                    mr: 1.5, 
-                    fontSize: '1.8rem',
-                    color: '#3730a3'
-                  }} />
-                  <Typography variant="h5" sx={{ 
-                    fontWeight: 600,
-                    color: '#1e3a8a'
-                  }}>
-                    3D Model Viewer
-                  </Typography>
-                </Box>
-                <Box sx={{ 
-                  height: 'calc(100% - 80px)',
-                  borderRadius: 2,
-                  border: '2px solid rgba(30, 58, 138, 0.1)',
-                  background: '#ffffff'
-                }}>
-                  <STLViewer 
-                    sessionId={sessionId}
-                    currentScale={currentScale}
-                  />
+              <Paper sx={{ ...sectionPaper, height: 520, mb: 0, display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
+                  3D Viewer
+                </Typography>
+                <Box sx={{ flex: 1, minHeight: 0, bgcolor: '#fafafa', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                  <STLViewer sessionId={sessionId} currentScale={currentScale} />
                 </Box>
               </Paper>
             </Grid>
-
-            {/* Scaling Controls - Next to 3D viewer */}
             <Grid item xs={12} md={4}>
-              <Paper 
-                elevation={3} 
-                sx={{ 
-                  p: 3, 
-                  height: '650px',
-                  borderRadius: 3,
-                  background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <AspectRatio sx={{ 
-                    mr: 1.5, 
-                    fontSize: '1.8rem',
-                    color: '#3730a3'
-                  }} />
-                  <Typography variant="h5" sx={{ 
-                    fontWeight: 600,
-                    color: '#1e3a8a'
-                  }}>
-                    Scale & Transform
-                  </Typography>
-                </Box>
-                <Box sx={{ height: 'calc(100% - 80px)', overflowY: 'auto' }}>
-                  <ScaleControls 
+              <Paper sx={{ ...sectionPaper, height: 520, mb: 0, display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
+                  Scale
+                </Typography>
+                <Box sx={{ flex: 1, overflowY: 'auto' }}>
+                  <ScaleControls
                     onScale={handleScale}
                     onReset={handleReset}
                     loading={scalingLoading}
@@ -547,101 +293,16 @@ function App() {
           </Grid>
         )}
 
-        {/* Surface Area Display - Underneath 3D model view */}
-        {currentFile && statistics && (
-          <Paper 
-            elevation={3} 
-            sx={{ 
-              p: 4, 
-              mb: 3,
-              borderRadius: 3,
-              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(30, 58, 138, 0.05) 100%)',
-              border: '2px solid rgba(59, 130, 246, 0.2)'
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h5" sx={{ 
-                  fontWeight: 600, 
-                  color: '#1e3a8a',
-                  mb: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 1
-                }}>
-                  <AspectRatio sx={{ fontSize: '2rem', color: '#3b82f6' }} />
-                  Model Surface Area
-                </Typography>
-                <Typography variant="h2" sx={{ 
-                  fontWeight: 800, 
-                  color: '#3b82f6',
-                  mb: 1
-                }}>
-                  {statistics.surface_area >= 100 
-                    ? `${(statistics.surface_area / 100).toFixed(2)} cm²`
-                    : `${statistics.surface_area.toFixed(2)} mm²`
-                  }
-                </Typography>
-                <Typography variant="body1" sx={{ 
-                  color: '#64748b',
-                  fontWeight: 500
-                }}>
-                  Total area available for electroplating
-                </Typography>
-              </Box>
-            </Box>
-          </Paper>
-        )}
-
-        {/* Analysis, Cost Calculator, and Electroplating in Accordion */}
         {currentFile && (
-          <Paper 
-            elevation={3}
-            sx={{
-              borderRadius: 3,
-              overflow: 'hidden',
-              border: '1px solid rgba(30, 58, 138, 0.1)'
-            }}
-          >
-            {/* Electroplating Accordion - Now first and more prominent */}
-            <Accordion
-              defaultExpanded
-              sx={{
-                '&:before': { display: 'none' },
-                boxShadow: 'none',
-                borderBottom: '2px solid rgba(245, 158, 11, 0.2)',
-                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(251, 191, 36, 0.05) 100%)'
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMore sx={{ color: '#f59e0b', fontSize: '2rem' }} />}
-                aria-controls="electroplating-content"
-                id="electroplating-header"
-                sx={{
-                  backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                  minHeight: '80px !important',
-                  '&:hover': {
-                    backgroundColor: 'rgba(245, 158, 11, 0.15)'
-                  },
-                  '& .MuiAccordionSummary-content': {
-                    alignItems: 'center',
-                    my: 2
-                  }
-                }}
-              >
-                <ElectricBolt sx={{ mr: 2, color: '#f59e0b', fontSize: '2.5rem' }} />
-                <Box>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e3a8a', mb: 0.5 }}>
-                    Electroplating Calculator
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: '#64748b', fontWeight: 500 }}>
-                    Professional electroplating analysis with surface area calculations
-                  </Typography>
-                </Box>
+          <Paper sx={{ mb: 2, overflow: 'hidden' }}>
+            <Accordion defaultExpanded disableGutters elevation={0}>
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  Electroplating
+                </Typography>
               </AccordionSummary>
-              <AccordionDetails sx={{ p: 4, backgroundColor: 'rgba(248, 250, 252, 0.5)' }}>
-                <ElectroplatingCalculator 
+              <AccordionDetails sx={{ pt: 0 }}>
+                <ElectroplatingCalculator
                   onCalculate={handleElectroplatingCalculation}
                   onGetRecommendations={handleGetRecommendations}
                   platingEstimate={platingEstimate}
@@ -652,65 +313,30 @@ function App() {
               </AccordionDetails>
             </Accordion>
 
-            {/* Analysis Accordion */}
-            <Accordion 
-              sx={{
-                '&:before': { display: 'none' },
-                boxShadow: 'none',
-                borderBottom: '1px solid rgba(30, 58, 138, 0.1)'
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMore sx={{ color: '#3730a3' }} />}
-                aria-controls="analysis-content"
-                id="analysis-header"
-                sx={{
-                  backgroundColor: 'rgba(30, 58, 138, 0.05)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(30, 58, 138, 0.08)'
-                  }
-                }}
-              >
-                <Analytics sx={{ mr: 2, color: '#3730a3', fontSize: '1.8rem' }} />
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1e3a8a' }}>
-                  Model Analysis
+            <Accordion disableGutters elevation={0}>
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  Mesh Analysis
                 </Typography>
               </AccordionSummary>
-              <AccordionDetails sx={{ p: 3 }}>
-                <MeshStats 
+              <AccordionDetails sx={{ pt: 0 }}>
+                <MeshStats
                   statistics={statistics}
                   validation={validation}
                   loading={analysisLoading}
-                  onRefresh={handleRefreshData}
+                  onRefresh={sessionId ? () => loadAnalysis(sessionId) : undefined}
                 />
               </AccordionDetails>
             </Accordion>
 
-            {/* Cost Calculator Accordion */}
-            <Accordion
-              sx={{
-                '&:before': { display: 'none' },
-                boxShadow: 'none'
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMore sx={{ color: '#3730a3' }} />}
-                aria-controls="cost-content"
-                id="cost-header"
-                sx={{
-                  backgroundColor: 'rgba(30, 58, 138, 0.05)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(30, 58, 138, 0.08)'
-                  }
-                }}
-              >
-                <Calculate sx={{ mr: 2, color: '#3730a3', fontSize: '1.8rem' }} />
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1e3a8a' }}>
-                  Cost Calculator
+            <Accordion disableGutters elevation={0}>
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  Resin Cost
                 </Typography>
               </AccordionSummary>
-              <AccordionDetails sx={{ p: 3 }}>
-                <CostCalculator 
+              <AccordionDetails sx={{ pt: 0 }}>
+                <CostCalculator
                   onCalculate={handleCostCalculation}
                   costEstimate={costEstimate}
                   loading={costLoading}
@@ -721,16 +347,20 @@ function App() {
         )}
       </Container>
 
-      {/* Global Snackbar for notifications */}
       <Snackbar
-        open={!!error || !!successMessage}
-        autoHideDuration={6000}
+        open={!!notification}
+        autoHideDuration={4000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        message={error || successMessage}
-      />
+      >
+        {notification ? (
+          <Alert onClose={handleCloseSnackbar} severity={notificationSeverity} variant="filled" sx={{ width: '100%' }}>
+            {notification}
+          </Alert>
+        ) : undefined}
+      </Snackbar>
     </ErrorBoundary>
   );
 }
 
-export default App; 
+export default App;

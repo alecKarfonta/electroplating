@@ -23,6 +23,8 @@ import logging
 from dotenv import load_dotenv
 load_dotenv()
 
+from pathlib import Path
+
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, Response
@@ -122,10 +124,9 @@ async def health():
     return {"status": "healthy"}
 
 
-@app.get("/", response_model=APIResponse)
-async def root():
-    """Root endpoint with API information."""
-    logger.info("Root endpoint accessed")
+@app.get("/api/info", response_model=APIResponse)
+async def api_info():
+    """API metadata for programmatic clients."""
     return APIResponse(
         success=True,
         message="STL Analysis API is running",
@@ -460,7 +461,10 @@ async def get_convex_hull_volume(session_id: str, stl_tools: STLTools = Depends(
         with PerformanceLogger(logger, "convex hull volume calculation"):
             volume = stl_tools.get_convex_hull_volume()
         if volume is None:
-            raise Exception("Convex hull volume calculation failed")
+            raise HTTPException(
+                status_code=501,
+                detail="Convex hull volume requires scipy (not included in production image)",
+            )
         
         return APIResponse(
             success=True,
@@ -515,6 +519,69 @@ async def get_api_stats():
     except Exception as e:
         logger.error(f"Error getting API stats", error=str(e))
         raise HTTPException(status_code=500, detail=f"Error getting API stats: {str(e)}")
+
+
+def _mount_frontend_static(app: FastAPI) -> None:
+    """Serve the built React app when static assets are present."""
+    static_dir = Path(os.getenv("STATIC_DIR", "/app/static"))
+    url_prefix = os.getenv("STATIC_URL_PREFIX", "/plateforge").rstrip("/")
+
+    if not static_dir.is_dir():
+        logger.info("Static frontend not mounted", static_dir=str(static_dir))
+        return
+
+    index_file = static_dir / "index.html"
+    if not index_file.is_file():
+        logger.warning("Static directory missing index.html", static_dir=str(static_dir))
+        return
+
+    def _safe_file(relative_path: str) -> Path | None:
+        asset = (static_dir / relative_path).resolve()
+        if not str(asset).startswith(str(static_dir.resolve())):
+            return None
+        return asset if asset.is_file() else None
+
+    async def _serve_index():
+        return FileResponse(index_file)
+
+    async def _serve_asset(relative_path: str):
+        asset = _safe_file(relative_path)
+        if asset:
+            return FileResponse(asset)
+        raise HTTPException(status_code=404)
+
+    # Direct access at /plateforge/...
+    @app.get(url_prefix, include_in_schema=False)
+    @app.get(f"{url_prefix}/", include_in_schema=False)
+    @app.get(f"{url_prefix}/{{asset_path:path}}", include_in_schema=False)
+    async def serve_frontend_prefixed(asset_path: str = ""):
+        if asset_path:
+            return await _serve_asset(asset_path)
+        return await _serve_index()
+
+    # nginx proxy_pass with trailing slash strips /plateforge/ -> / and /static/...
+    @app.get("/", include_in_schema=False)
+    async def serve_frontend_root():
+        return await _serve_index()
+
+    @app.get("/static/{asset_path:path}", include_in_schema=False)
+    async def serve_frontend_static_assets(asset_path: str):
+        return await _serve_asset(f"static/{asset_path}")
+
+    for root_asset in ("favicon.ico", "favicon.svg", "manifest.json", "asset-manifest.json"):
+        @app.get(f"/{root_asset}", include_in_schema=False)
+        async def serve_frontend_root_asset(asset=root_asset):
+            return await _serve_asset(asset)
+
+    logger.info(
+        "Serving frontend static files",
+        url_prefix=url_prefix,
+        static_dir=str(static_dir),
+        nginx_strip_compat=True,
+    )
+
+
+_mount_frontend_static(app)
 
 
 @app.exception_handler(Exception)

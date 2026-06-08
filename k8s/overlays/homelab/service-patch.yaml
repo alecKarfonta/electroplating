@@ -1,0 +1,14 @@
+- op: replace
+  path: /spec/ports
+  value:
+    - name: api
+      port: 8116
+      targetPort: http
+      protocol: TCP
+    - name: ui
+      port: 3017
+      targetPort: http
+      protocol: TCP
+- op: replace
+  path: /spec/type
+  value: LoadBalancer

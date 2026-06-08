@@ -49,12 +49,21 @@ Thumbs.db
 
 # Project specific
 sessions/
+logs/
 *.stl
 *.obj
 *.ply
 mesh_analysis_report.json
-test_*.py
-*_test.py
+tests/
+
+# Frontend (node_modules rebuilt in Docker; keep source)
+frontend/node_modules/
+frontend/build/
+frontend/coverage/
+k8s/
+scripts/
+monitoring/
+docs/
 
 # Documentation
 README.md

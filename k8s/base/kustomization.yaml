@@ -1,12 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: electroplating
+namespace: plateforge
 
 labels:
   - pairs:
       app.kubernetes.io/managed-by: kustomize
-      app.kubernetes.io/part-of: electroplating
+      app.kubernetes.io/part-of: plateforge
     includeSelectors: false
 
 resources:
@@ -14,5 +14,4 @@ resources:
   - configmap.yaml
   - pvc.yaml
   - backend.yaml
-  - frontend.yaml
   - ingress.yaml

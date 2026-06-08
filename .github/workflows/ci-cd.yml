@@ -147,8 +147,8 @@ jobs:
       id: repo_name
       run: echo "repo_lowercase=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
-    - name: Extract backend metadata
-      id: backend_meta
+    - name: Extract app metadata
+      id: app_meta
       uses: docker/metadata-action@v5
       with:
         images: ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/backend
@@ -158,36 +158,14 @@ jobs:
           type=sha,prefix={{branch}}-
           type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Extract frontend metadata
-      id: frontend_meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ steps.repo_name.outputs.repo_lowercase }}/frontend
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
-
-    - name: Build and push backend image
+    - name: Build and push app image
       uses: docker/build-push-action@v5
       with:
         context: .
         file: ./Dockerfile
         push: true
-        tags: ${{ steps.backend_meta.outputs.tags }}
-        labels: ${{ steps.backend_meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-    
-    - name: Build and push frontend image
-      uses: docker/build-push-action@v5
-      with:
-        context: ./frontend
-        file: ./frontend/Dockerfile
-        push: true
-        tags: ${{ steps.frontend_meta.outputs.tags }}
-        labels: ${{ steps.frontend_meta.outputs.labels }}
+        tags: ${{ steps.app_meta.outputs.tags }}
+        labels: ${{ steps.app_meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Box,
-  Paper,
   Typography,
   TextField,
   Button,
@@ -15,13 +14,6 @@ import {
   Chip,
   Divider,
 } from '@mui/material';
-import {
-  ZoomIn,
-  ZoomOut,
-  Refresh,
-  AspectRatio,
-  Straighten,
-} from '@mui/icons-material';
 import { ScaleRequest } from '../types/api';
 
 interface ScaleControlsProps {
@@ -30,7 +22,6 @@ interface ScaleControlsProps {
   loading?: boolean;
   error?: string | null;
   currentScale?: number;
-  onRefresh?: () => void;
 }
 
 const ScaleControls: React.FC<ScaleControlsProps> = ({
@@ -39,7 +30,6 @@ const ScaleControls: React.FC<ScaleControlsProps> = ({
   loading = false,
   error = null,
   currentScale = 1.0,
-  onRefresh,
 }) => {
   const [scaleFactor, setScaleFactor] = useState<number>(1.0);
   const [scaleMode, setScaleMode] = useState<'uniform' | 'xyz'>('uniform');
@@ -47,238 +37,127 @@ const ScaleControls: React.FC<ScaleControlsProps> = ({
   const [yScale, setYScale] = useState<number>(1.0);
   const [zScale, setZScale] = useState<number>(1.0);
 
-  const handleUniformScale = (value: number) => {
-    setScaleFactor(value);
-  };
+  const handleUniformScale = (value: number) => setScaleFactor(value);
 
   const handleXYZScale = (axis: 'x' | 'y' | 'z', value: number) => {
-    switch (axis) {
-      case 'x':
-        setXScale(value);
-        break;
-      case 'y':
-        setYScale(value);
-        break;
-      case 'z':
-        setZScale(value);
-        break;
-    }
+    if (axis === 'x') setXScale(value);
+    else if (axis === 'y') setYScale(value);
+    else setZScale(value);
   };
 
   const handleScale = () => {
-    let scaleRequest: ScaleRequest;
-    
-    if (scaleMode === 'uniform') {
-      scaleRequest = { scale_factor: scaleFactor };
-    } else {
-      scaleRequest = { scale_factor: [xScale, yScale, zScale] };
-    }
-    
+    const scaleRequest: ScaleRequest =
+      scaleMode === 'uniform'
+        ? { scale_factor: scaleFactor }
+        : { scale_factor: [xScale, yScale, zScale] };
     onScale(scaleRequest);
   };
 
   const handleReset = () => {
-    if (onReset) {
-      onReset();
-    }
+    onReset?.();
     setScaleFactor(1.0);
     setXScale(1.0);
     setYScale(1.0);
     setZScale(1.0);
   };
 
-  const handleRefresh = () => {
-    if (onRefresh) {
-      onRefresh();
-    }
-  };
-
-  const presetScales = [
-    { label: '0.5x', value: 0.5 },
-    { label: '1x', value: 1.0 },
-    { label: '2x', value: 2.0 },
-    { label: '5x', value: 5.0 },
-    { label: '10x', value: 10.0 },
-  ];
+  const presetScales = [0.5, 1.0, 2.0, 5.0, 10.0];
 
   return (
-    <Paper elevation={3} sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom>
-        <AspectRatio sx={{ mr: 1, verticalAlign: 'middle' }} />
-        Scale Controls
-      </Typography>
-
+    <Box>
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
 
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="body2" color="text.secondary" gutterBottom>
-          Current Scale: {currentScale.toFixed(2)}x
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          {presetScales.map((preset) => (
-            <Chip
-              key={preset.value}
-              label={preset.label}
-              onClick={() => setScaleFactor(preset.value)}
-              variant={scaleFactor === preset.value ? 'filled' : 'outlined'}
-              color={scaleFactor === preset.value ? 'primary' : 'default'}
-              size="small"
-            />
-          ))}
-        </Box>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+        Current scale: {currentScale.toFixed(2)}x
+      </Typography>
+
+      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
+        {presetScales.map((value) => (
+          <Chip
+            key={value}
+            label={`${value}x`}
+            onClick={() => setScaleFactor(value)}
+            variant={scaleFactor === value ? 'filled' : 'outlined'}
+            color={scaleFactor === value ? 'primary' : 'default'}
+            size="small"
+          />
+        ))}
       </Box>
 
-      <FormControl fullWidth sx={{ mb: 3 }}>
+      <FormControl fullWidth size="small" sx={{ mb: 2 }}>
         <InputLabel>Scale Mode</InputLabel>
         <Select
           value={scaleMode}
           label="Scale Mode"
           onChange={(e) => setScaleMode(e.target.value as 'uniform' | 'xyz')}
         >
-          <MenuItem value="uniform">Uniform Scale</MenuItem>
-          <MenuItem value="xyz">XYZ Scale</MenuItem>
+          <MenuItem value="uniform">Uniform</MenuItem>
+          <MenuItem value="xyz">Per Axis</MenuItem>
         </Select>
       </FormControl>
 
       {scaleMode === 'uniform' ? (
-        <Box sx={{ mb: 3 }}>
-          <Typography gutterBottom>
-            Scale Factor: {scaleFactor.toFixed(2)}x
-          </Typography>
+        <Box sx={{ mb: 2 }}>
           <Slider
             value={scaleFactor}
             onChange={(_, value) => handleUniformScale(value as number)}
             min={0.01}
             max={20}
             step={0.01}
-            marks={[
-              { value: 0.01, label: '0.01x' },
-              { value: 1, label: '1x' },
-              { value: 10, label: '10x' },
-              { value: 20, label: '20x' },
-            ]}
             valueLabelDisplay="auto"
+            size="small"
           />
           <TextField
             fullWidth
+            size="small"
             label="Scale Factor"
             type="number"
             value={scaleFactor}
             onChange={(e) => handleUniformScale(parseFloat(e.target.value) || 1.0)}
             inputProps={{ min: 0.01, max: 100, step: 0.01 }}
-            helperText="Enter a scale factor (0.01 to 100)"
-            sx={{ mt: 2 }}
           />
         </Box>
       ) : (
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={4}>
-            <Typography gutterBottom>X Scale: {xScale.toFixed(2)}x</Typography>
-            <Slider
-              value={xScale}
-              onChange={(_, value) => handleXYZScale('x', value as number)}
-              min={0.01}
-              max={10}
-              step={0.01}
-              valueLabelDisplay="auto"
-            />
-            <TextField
-              fullWidth
-              label="X Scale"
-              type="number"
-              value={xScale}
-              onChange={(e) => handleXYZScale('x', parseFloat(e.target.value) || 1.0)}
-              inputProps={{ min: 0.01, max: 100, step: 0.01 }}
-              size="small"
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Typography gutterBottom>Y Scale: {yScale.toFixed(2)}x</Typography>
-            <Slider
-              value={yScale}
-              onChange={(_, value) => handleXYZScale('y', value as number)}
-              min={0.01}
-              max={10}
-              step={0.01}
-              valueLabelDisplay="auto"
-            />
-            <TextField
-              fullWidth
-              label="Y Scale"
-              type="number"
-              value={yScale}
-              onChange={(e) => handleXYZScale('y', parseFloat(e.target.value) || 1.0)}
-              inputProps={{ min: 0.01, max: 100, step: 0.01 }}
-              size="small"
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Typography gutterBottom>Z Scale: {zScale.toFixed(2)}x</Typography>
-            <Slider
-              value={zScale}
-              onChange={(_, value) => handleXYZScale('z', value as number)}
-              min={0.01}
-              max={10}
-              step={0.01}
-              valueLabelDisplay="auto"
-            />
-            <TextField
-              fullWidth
-              label="Z Scale"
-              type="number"
-              value={zScale}
-              onChange={(e) => handleXYZScale('z', parseFloat(e.target.value) || 1.0)}
-              inputProps={{ min: 0.01, max: 100, step: 0.01 }}
-              size="small"
-            />
-          </Grid>
+        <Grid container spacing={1} sx={{ mb: 2 }}>
+          {(['x', 'y', 'z'] as const).map((axis) => {
+            const value = axis === 'x' ? xScale : axis === 'y' ? yScale : zScale;
+            return (
+              <Grid item xs={4} key={axis}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label={`${axis.toUpperCase()}`}
+                  type="number"
+                  value={value}
+                  onChange={(e) => handleXYZScale(axis, parseFloat(e.target.value) || 1.0)}
+                  inputProps={{ min: 0.01, max: 100, step: 0.01 }}
+                />
+              </Grid>
+            );
+          })}
         </Grid>
       )}
 
-      <Divider sx={{ my: 2 }} />
+      <Divider sx={{ mb: 2 }} />
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} sm={12} md={4}>
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={handleScale}
-            disabled={loading}
-            startIcon={<ZoomIn />}
-            sx={{ height: 56 }}
-          >
-            {loading ? 'Scaling...' : 'Apply Scale'}
+      <Grid container spacing={1}>
+        <Grid item xs={6}>
+          <Button variant="contained" fullWidth onClick={handleScale} disabled={loading} size="small">
+            {loading ? 'Applying...' : 'Apply'}
           </Button>
         </Grid>
-        <Grid item xs={12} sm={6} md={4}>
-          <Button
-            variant="outlined"
-            fullWidth
-            onClick={handleReset}
-            startIcon={<Refresh />}
-            sx={{ height: 56 }}
-          >
+        <Grid item xs={6}>
+          <Button variant="outlined" fullWidth onClick={handleReset} size="small">
             Reset
           </Button>
         </Grid>
-        <Grid item xs={12} sm={6} md={4}>
-          <Button
-            variant="outlined"
-            fullWidth
-            onClick={handleRefresh}
-            startIcon={<Straighten />}
-            sx={{ height: 56 }}
-          >
-            Refresh Data
-          </Button>
-        </Grid>
       </Grid>
-    </Paper>
+    </Box>
   );
 };
 
-export default ScaleControls; 
+export default ScaleControls;

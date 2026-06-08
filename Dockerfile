@@ -1,46 +1,59 @@
-# Use Python 3.11 slim image as base
-FROM python:3.11-slim
+# Stage 1: build frontend static assets
+FROM node:18-alpine AS frontend-build
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONPATH=/app
+WORKDIR /app/frontend
 
-# Set working directory
-WORKDIR /app
+COPY frontend/package*.json ./
+RUN npm ci
 
-# Install system dependencies required for scientific computing packages
-RUN apt-get update && apt-get install -y \
+COPY frontend/ .
+
+ARG REACT_APP_API_URL=/stl/api
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+
+RUN npm run build
+
+# Stage 2: build Python wheels
+FROM python:3.11-slim AS python-build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
-    build-essential \
-    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements file
-COPY requirements.txt ./requirements.txt
+COPY requirements-prod.txt .
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip wheel --no-cache-dir -r requirements-prod.txt -w /wheels
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Stage 3: runtime (API + static UI in one image)
+FROM python:3.11-slim
 
-# Copy application code
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
+    STATIC_DIR=/app/static \
+    STATIC_URL_PREFIX=/plateforge
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=python-build /wheels /wheels
+RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
+
 COPY api/ ./api/
+COPY --from=frontend-build /app/frontend/build ./static
 
-# Create directory for session files
-RUN mkdir -p /app/sessions
+RUN mkdir -p /app/sessions /app/logs \
+    && useradd --create-home --shell /bin/bash app \
+    && chown -R app:app /app
 
-# Create non-root user for security
-RUN useradd --create-home --shell /bin/bash app && \
-    chown -R app:app /app
 USER app
 
-# Expose port
 EXPOSE 8116
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8116/ || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8116/health || exit 1
 
-# Default command to run the API
-CMD ["python", "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8116"] 
+CMD ["python", "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8116"]

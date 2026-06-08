@@ -1,13 +1,16 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: backend-config
+  name: plateforge-config
   labels:
-    app.kubernetes.io/name: backend
-    app.kubernetes.io/part-of: electroplating
+    app.kubernetes.io/name: plateforge
+    app.kubernetes.io/part-of: plateforge
 data:
   PYTHONPATH: "/app"
   PYTHONUNBUFFERED: "1"
   LOG_LEVEL: "INFO"
   LOG_FILE: "/app/logs/api.log"
   ALLOWED_ORIGINS: "https://mlapi.us,http://localhost:3017"
+  MAX_FILE_SIZE: "104857600"
+  MAX_SESSIONS: "1000"
+  SESSION_TIMEOUT: "3600"

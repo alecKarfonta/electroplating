@@ -8,9 +8,6 @@ images:
   - name: ghcr.io/aleckarfonta/electroplating/backend
     newName: ghcr.io/aleckarfonta/electroplating/backend
     newTag: latest
-  - name: ghcr.io/aleckarfonta/electroplating/frontend
-    newName: ghcr.io/aleckarfonta/electroplating/frontend
-    newTag: latest
 
 patches:
   - path: ingress-patch.yaml

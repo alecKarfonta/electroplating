@@ -309,7 +309,7 @@ describe('ElectroplatingCalculator', () => {
     
     expect(screen.getByText('Calculation Results')).toBeInTheDocument();
     expect(screen.getByText('0.85 A')).toBeInTheDocument(); // recommended current
-    expect(screen.getByText(/20 minutes/)).toBeInTheDocument(); // time (might be formatted)
+    expect(screen.getByText('20m')).toBeInTheDocument();
     // Metal usage display varies by unit system, just check that results are shown
     expect(screen.getByText('Calculation Results')).toBeInTheDocument();
   });

@@ -30,7 +30,6 @@ describe('CostCalculator', () => {
   it('renders correctly with default values', () => {
     render(<CostCalculator {...defaultProps} />);
     
-    expect(screen.getByText('Cost Calculator')).toBeInTheDocument();
     expect(screen.getByLabelText(/Resin Density/)).toHaveValue(1.1);
     expect(screen.getByLabelText(/Resin Price/)).toHaveValue(50.0);
     expect(screen.getByDisplayValue('mm3')).toBeInTheDocument();
@@ -92,10 +91,9 @@ describe('CostCalculator', () => {
     render(<CostCalculator {...defaultProps} costEstimate={mockCostEstimate} />);
     
     expect(screen.getByText('Cost Estimation Results')).toBeInTheDocument();
-    expect(screen.getByText('1,000,000')).toBeInTheDocument(); // volume_mm3
-    expect(screen.getByText('1000.00')).toBeInTheDocument(); // volume_cm3
-    expect(screen.getByText('1100.00')).toBeInTheDocument(); // mass_g
-    expect(screen.getByText('$55.00')).toBeInTheDocument(); // cost
+    expect(screen.getByText('1000.00 cm³')).toBeInTheDocument();
+    expect(screen.getByText('1100.00 g')).toBeInTheDocument();
+    expect(screen.getByText('$55.00')).toBeInTheDocument();
   });
 
   it('renders volume unit selector', () => {

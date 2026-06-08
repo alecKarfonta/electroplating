@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: electroplating
+  name: plateforge
   labels:
-    app.kubernetes.io/name: electroplating
-    app.kubernetes.io/part-of: electroplating
+    app.kubernetes.io/name: plateforge
+    app.kubernetes.io/part-of: plateforge
