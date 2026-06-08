@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: electroplating-app
+spec:
+  tls:
+    - hosts:
+        - mlapi.us
+      secretName: electroplating-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: electroplating-api
+spec:
+  tls:
+    - hosts:
+        - mlapi.us
+      secretName: electroplating-tls

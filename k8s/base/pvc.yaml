@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backend-sessions
+  labels:
+    app.kubernetes.io/name: backend
+    app.kubernetes.io/part-of: electroplating
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi

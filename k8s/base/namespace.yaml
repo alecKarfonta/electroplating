@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: electroplating
+  labels:
+    app.kubernetes.io/name: electroplating
+    app.kubernetes.io/part-of: electroplating

@@ -36,7 +36,6 @@ from .core import (
     ElectroplatingRecommendations
 )
 from .core.logger import setup_logging, get_logger, PerformanceLogger
-from .core.rate_limiter import get_rate_limiter, rate_limit_decorator
 
 # Setup logging
 setup_logging(
@@ -97,15 +96,6 @@ async def startup_event():
     asyncio.create_task(cleanup_expired_sessions())
 
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Shutdown event handler."""
-    logger.info("Shutting down STL Analysis API")
-    # Cleanup rate limiter
-    rate_limiter = get_rate_limiter()
-    await rate_limiter.cleanup()
-
-
 def get_stl_tools(session_id: str) -> STLTools:
     """
     Dependency to get STLTools instance for a session.
@@ -124,6 +114,12 @@ def get_stl_tools(session_id: str) -> STLTools:
         logger.warning(f"Session not found or STL tools could not be loaded", session_id=session_id)
         raise HTTPException(status_code=404, detail="Session not found or STL file could not be loaded")
     return stl_tools
+
+
+@app.get("/health")
+async def health():
+    """Health check endpoint for load balancers and orchestrators."""
+    return {"status": "healthy"}
 
 
 @app.get("/", response_model=APIResponse)
@@ -152,7 +148,6 @@ async def root():
 
 
 @app.post("/upload", response_model=FileUploadResponse)
-@rate_limit_decorator("upload", "default")
 async def upload_stl_file(request: Request, file: UploadFile = File(...)):
     """
     Upload an STL file and create a session.
