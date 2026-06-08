@@ -6,8 +6,12 @@ build:
   service: app
   homelab:
     image: docker.io/library/electroplating-app:local
+    delivery: import
+    registry:
+      repo: plateforge/plateforge
+      tag: local
   registry:
-    image: ghcr.io/aleckarfonta/electroplating/backend
+    image: ghcr.io/aleckarfonta/electroplating/plateforge
     tag: latest
     push: true
 
@@ -19,14 +23,24 @@ k8s:
       import_nodes: homelab/cpu-tier=cheap
     production: {}
 
+storage:
+  sessions:
+    type: emptyDir
+    size: 10Gi
+
 verify:
-  - url: http://127.0.0.1:8116/health
-    description: LoadBalancer API health on edge host
-  - url: https://mlapi.us/stl/api/health
-    description: public API route
   - url: https://mlapi.us/plateforge/
+    description: PlateForge UI
     expect_status: 200
-    description: public UI route
+  - url: https://mlapi.us/stl/api/health
+    description: PlateForge API health
+    expect_status: 200
 
 nginx:
   name: plateforge
+  host: auto
+  service: backend
+  service_port: api
+  upstreams:
+    host196_plateforge_api: 8116
+    host196_plateforge_fe: 8116

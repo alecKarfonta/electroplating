@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  template:
+    spec:
+      volumes:
+        - name: sessions
+          persistentVolumeClaim:
+            claimName: plateforge-sessions
+        - name: logs
+          emptyDir: {}

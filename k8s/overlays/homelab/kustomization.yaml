@@ -5,24 +5,10 @@ resources:
   - ../../base
 
 images:
-  - name: ghcr.io/aleckarfonta/electroplating/backend
-    newName: docker.io/library/electroplating-app
+  - name: ghcr.io/aleckarfonta/electroplating/plateforge
+    newName: electroplating-app
     newTag: local
 
 patches:
   - path: delete-ingress.yaml
-  - path: delete-pvc.yaml
-  - path: configmap-patch.yaml
   - path: deployment-patch.yaml
-  - target:
-      kind: Deployment
-      name: backend
-    path: affinity-patch.yaml
-  - target:
-      kind: Deployment
-      name: backend
-    path: volumes-patch.yaml
-  - target:
-      kind: Service
-      name: backend
-    path: service-patch.yaml

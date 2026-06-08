@@ -4,12 +4,14 @@ metadata:
   name: backend
   labels:
     app: plateforge
-    component: backend
     app.kubernetes.io/name: plateforge
-    app.kubernetes.io/component: backend
     app.kubernetes.io/part-of: plateforge
+    app.kubernetes.io/component: backend
+    component: backend
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: plateforge
@@ -18,14 +20,14 @@ spec:
     metadata:
       labels:
         app: plateforge
-        component: backend
         app.kubernetes.io/name: plateforge
-        app.kubernetes.io/component: backend
         app.kubernetes.io/part-of: plateforge
+        app.kubernetes.io/component: backend
+        component: backend
     spec:
       containers:
         - name: backend
-          image: ghcr.io/aleckarfonta/electroplating/backend:latest
+          image: ghcr.io/aleckarfonta/electroplating/plateforge:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8116
@@ -61,26 +63,6 @@ spec:
               mountPath: /app/logs
       volumes:
         - name: sessions
-          persistentVolumeClaim:
-            claimName: backend-sessions
+          emptyDir: {}
         - name: logs
           emptyDir: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend
-  labels:
-    app: plateforge
-    component: backend
-    app.kubernetes.io/name: plateforge
-    app.kubernetes.io/component: backend
-    app.kubernetes.io/part-of: plateforge
-spec:
-  selector:
-    app: plateforge
-    component: backend
-  ports:
-    - name: http
-      port: 8116
-      targetPort: http

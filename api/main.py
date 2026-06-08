@@ -15,6 +15,7 @@ and provides comprehensive error handling and validation.
 
 import os
 import asyncio
+from pathlib import Path
 from typing import Dict, Any
 from datetime import datetime
 import logging
@@ -28,6 +29,7 @@ from pathlib import Path
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 
 from .core import (
@@ -66,6 +68,18 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def stl_api_prefix(request: Request, call_next):
+    """Map /stl/api/* to the same handlers as /* (mlapi.us nginx uses this prefix)."""
+    path = request.url.path
+    if path.startswith("/stl/api"):
+        suffix = path[len("/stl/api"):] or "/"
+        if not suffix.startswith("/"):
+            suffix = f"/{suffix}"
+        request.scope["path"] = suffix
+    return await call_next(request)
 
 # Initialize session manager
 session_manager = SessionManager()
@@ -518,7 +532,12 @@ async def get_api_stats():
         }
     except Exception as e:
         logger.error(f"Error getting API stats", error=str(e))
-        raise HTTPException(status_code=500, detail=f"Error getting API stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting API stats: {str(e)}"    )
+
+
+STATIC_ROOT = Path(__file__).resolve().parent.parent / "static" / "plateforge"
+if STATIC_ROOT.is_dir():
+    app.mount("/plateforge", StaticFiles(directory=str(STATIC_ROOT), html=True), name="plateforge")
 
 
 def _mount_frontend_static(app: FastAPI) -> None:

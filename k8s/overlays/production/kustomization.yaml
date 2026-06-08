@@ -5,10 +5,9 @@ resources:
   - ../../base
 
 images:
-  - name: ghcr.io/aleckarfonta/electroplating/backend
-    newName: ghcr.io/aleckarfonta/electroplating/backend
+  - name: ghcr.io/aleckarfonta/electroplating/plateforge
+    newName: ghcr.io/aleckarfonta/electroplating/plateforge
     newTag: latest
 
 patches:
   - path: ingress-patch.yaml
-  - path: configmap-patch.yaml

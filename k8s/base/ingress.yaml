@@ -1,10 +1,10 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: electroplating-app
+  name: plateforge-app
   labels:
-    app.kubernetes.io/name: electroplating
-    app.kubernetes.io/part-of: electroplating
+    app.kubernetes.io/name: plateforge
+    app.kubernetes.io/part-of: plateforge
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
 spec:
@@ -27,35 +27,8 @@ spec:
                 name: backend
                 port:
                   number: 8116
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: electroplating-api
-  labels:
-    app.kubernetes.io/name: electroplating
-    app.kubernetes.io/part-of: electroplating
-  annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
-    nginx.ingress.kubernetes.io/use-regex: "true"
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
-spec:
-  ingressClassName: nginx
-  rules:
-    - host: mlapi.us
-      http:
-        paths:
-          - path: /stl/api(/|$)(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: backend
-                port:
-                  number: 8116
-          - path: /api(/|$)(.*)
-            pathType: ImplementationSpecific
+          - path: /stl/api
+            pathType: Prefix
             backend:
               service:
                 name: backend

@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: plateforge-config
-data:
-  LOG_FILE: "/tmp/api.log"
-  ALLOWED_ORIGINS: "https://mlapi.us"

@@ -6,12 +6,11 @@ namespace: plateforge
 labels:
   - pairs:
       app.kubernetes.io/managed-by: kustomize
-      app.kubernetes.io/part-of: plateforge
     includeSelectors: false
 
 resources:
   - namespace.yaml
   - configmap.yaml
-  - pvc.yaml
-  - backend.yaml
+  - deployment.yaml
+  - service.yaml
   - ingress.yaml
