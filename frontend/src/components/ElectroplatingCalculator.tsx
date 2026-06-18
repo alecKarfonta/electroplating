@@ -391,6 +391,26 @@ const ElectroplatingCalculator: React.FC<ElectroplatingCalculatorProps> = ({
 
           <Box sx={{ mt: 2, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
             <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
+              Amperage Equation
+            </Typography>
+            <Box component="pre" sx={{ m: 0, fontFamily: 'monospace', fontSize: '0.85rem', overflowX: 'auto', whiteSpace: 'pre-wrap' }}>
+              <Typography component="span" sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                I = A × j
+              </Typography>
+              {'\n'}
+              <Typography component="span" color="text.secondary" sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                {'  where j = (j'}<sub>min</sub>{' + j'}<sub>max</sub>{') / 2'}
+              </Typography>
+            </Box>
+            <Box component="pre" sx={{ mt: 1, m: 0, fontFamily: 'monospace', fontSize: '0.85rem', overflowX: 'auto', whiteSpace: 'pre-wrap' }}>
+              <Typography component="span" sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                I = {formatNumber(platingEstimate.surface_area.in2)} in² × {formatNumber(platingEstimate.current_requirements.current_density_range.recommended)} A/in² = {formatNumber(platingEstimate.current_requirements.recommended_amps)} A
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box sx={{ mt: 2, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
               Equipment Settings
             </Typography>
             <Typography variant="body2">

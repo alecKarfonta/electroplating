@@ -1,3 +1,20 @@
+## mlapi.us/plateforge 502 (2026-06-17)
+
+**Symptom:** https://mlapi.us/plateforge/ returns 502 Bad Gateway.
+
+**Root cause:** nginx upstream `host196_plateforge_api` pointed at `127.0.0.1:8116`, which refuses connections on node-4. The plateforge app is reachable on `localhost:8116` (IPv6 `::1`) and `192.168.1.4:8116` — k3s servicelb binds the LoadBalancer on LAN IPs while a local docker `plateforge` container serves the app on `[::]:8116`.
+
+**stockastic.us is unaffected** — separate `server_name`, SSL cert, and `stocker_api` upstream on `127.0.0.1:8734`.
+
+**Fix (on node-4):**
+```bash
+sudo ~/git/system/scripts/install-nginx-app.sh plateforge
+```
+
+Upstream in `~/git/system/nginx/upstreams/plateforge.conf` must use `[::1]:8116` (nginx resolves `localhost` to `127.0.0.1`).
+
+**Secondary issue:** k8s pod `plateforge/backend` is `ImagePullBackOff` (`electroplating-app:local` not on node `xeon`). Traffic is served by an 8-day-old docker container, not the cluster deployment. Redeploy with `make app-deploy APP=plateforge` after image import.
+
 ## App deploy contract (2026-06-08)
 
 Plateforge is managed by `~/git/system` via the app deploy contract.
